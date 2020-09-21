@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
+// import App from './App';
+import Editor from './components/Editor';
+import { fakeData } from './components/fakeData';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Editor nodeData={fakeData} />
   </React.StrictMode>,
   document.getElementById('root')
 );
