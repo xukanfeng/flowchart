@@ -1,11 +1,11 @@
 import React from 'react';
-import { NodeData } from '../type';
+//import { NodeData } from '../type';
 import SingleNode from '../SingleNode';
 import './style.scss';
-import ConditionNode from '../ConditionNode';
+import BaseNode from '../BaseNode';
 
 export interface EditorProps {
-  nodeData: NodeData;
+  nodeData: any;
 }
 
 const Editor: React.FC<EditorProps> = (props) => {
@@ -13,8 +13,10 @@ const Editor: React.FC<EditorProps> = (props) => {
 
   return (
     <div className="editor">
-      <SingleNode id={nodeData.id} children={nodeData.children}></SingleNode>
-      <ConditionNode id={"1"}></ConditionNode>
+      <SingleNode child={nodeData.child}></SingleNode>
+      {/*       <SingleNode></SingleNode>
+      <SingleNode></SingleNode>
+      <BaseNode id=""></BaseNode> */}
     </div>
   );
 };

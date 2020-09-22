@@ -1,4 +1,6 @@
-.single-node {
+@import '~antd/dist/antd.css';
+
+.single-node-wrapper {
   display: flex;
   flex-direction: column;
   -webkit-box-pack: start;
@@ -11,26 +13,6 @@
   flex-wrap: wrap;
   -webkit-box-flex: 1;
   -ms-flex-positive: 1;
-  padding: 0 50px;
-  position: relative;
-
-  .node {
-    display: -webkit-inline-box;
-    display: -ms-inline-flexbox;
-    display: inline-flex;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    position: relative;
-    width: 120px;
-    min-height: 40px;
-    -ms-flex-negative: 0;
-    flex-shrink: 0;
-    background: red;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  
+  // padding: 0 50px;
+  // position: relative;
 }

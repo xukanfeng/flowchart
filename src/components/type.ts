@@ -1,6 +1,4 @@
 export interface NodeData {
-  id: string;
+  id?: string;
   name?: string;
-  properties?: object;
-  children?: Array<NodeData>;
 }

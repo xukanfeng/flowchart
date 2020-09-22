@@ -1,26 +1,42 @@
 import React from 'react';
 import { NodeData } from '../type';
-import { Menu, Dropdown } from 'antd'
-import './index.scss'
+import './index.scss';
+import BaseNode, { BaseNodeProps } from '../BaseNode';
+import BranchNode, { BranchNodeProps } from '../BranchNode';
+import ConditionNode, { ConditionNodeProps } from '../ConditionNode';
 import Link from '../Link';
 
-const SingleNode: React.FC<NodeData> = (props) => {
-  const { children } = props;
-  const menu = (
-    <Menu>
-      <Menu.Item key="1">1st menu item</Menu.Item>
-      <Menu.Item key="2">2nd menu item</Menu.Item>
-      <Menu.Item key="3">3rd menu item</Menu.Item>
-    </Menu>
-  );
+export interface SingleNodeProps extends NodeData {
+  type?: String;
+  child?: BaseNodeProps | SingleNodeProps | BranchNodeProps | ConditionNodeProps;
+}
+
+const SingleNode: React.FC<SingleNodeProps> = (props) => {
+  const { child } = props;
+  const renderChild = (child: any) => {
+    switch (child.type) {
+      case 'base-node':
+        return <BaseNode></BaseNode>;
+      case 'single-node':
+        return <SingleNode child={child.child}></SingleNode>;
+      case 'branch-node':
+        return <BranchNode branches={child.branches}></BranchNode>;
+      case 'condition-node':
+        return (
+          <ConditionNode
+            conditions={child.conditions}
+            child={child.child}
+          ></ConditionNode>
+        );
+      default:
+        return null;
+    }
+  };
   return (
-    <div>
-      <Dropdown overlay={menu} trigger={['contextMenu']}>
-        <div className="single-node">
-          <div className="node"></div>
-        </div>
-      </Dropdown>
+    <div className="single-node-wrapper">
+      <BaseNode id={child?.id}></BaseNode>
       <Link></Link>
+      {renderChild(child)}
     </div>
   );
 };
