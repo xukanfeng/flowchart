@@ -1,5 +1,5 @@
 import React from 'react';
-import { NodeData } from '../type';
+import { NodeProps } from '../type';
 import { Menu, Dropdown } from 'antd';
 import './index.scss';
 
@@ -7,11 +7,9 @@ interface Authority {
   addConditionNode: Boolean;
   addBranchNode: Boolean;
   addSingleNode: Boolean;
-  addBaseNode: Boolean;
 }
 
-export interface BaseNodeProps extends NodeData{
-}
+export interface BaseNodeProps extends NodeProps {}
 
 const BaseNode: React.FC<BaseNodeProps> = (props) => {
   const { id } = props;

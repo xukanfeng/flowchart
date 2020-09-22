@@ -1,23 +1,28 @@
 import React from 'react';
-//import { NodeData } from '../type';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import reducer from '../../reducers';
+import { Button } from 'antd';
 import SingleNode from '../SingleNode';
 import './style.scss';
-import BaseNode from '../BaseNode';
 
 export interface EditorProps {
   nodeData: any;
+  onSave?: (data: any) => any;
 }
 
+const store = createStore(reducer)
+
 const Editor: React.FC<EditorProps> = (props) => {
-  const { nodeData } = props;
+  const { nodeData, onSave } = props;
 
   return (
-    <div className="editor">
-      <SingleNode child={nodeData.child}></SingleNode>
-      {/*       <SingleNode></SingleNode>
-      <SingleNode></SingleNode>
-      <BaseNode id=""></BaseNode> */}
-    </div>
+    <Provider store={store}>
+      <div className="editor">
+        <Button onClick={onSave && (() => onSave(nodeData))}>保存</Button>
+        <SingleNode child={nodeData.child}></SingleNode>
+      </div>
+    </Provider>
   );
 };
 

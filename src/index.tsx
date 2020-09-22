@@ -8,7 +8,7 @@ import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Editor nodeData={fakeData} />
+    <Editor nodeData={fakeData} onSave={data => console.log(data)}/>
   </React.StrictMode>,
   document.getElementById('root')
 );

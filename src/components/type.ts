@@ -1,4 +1,4 @@
-export interface NodeData {
+export interface NodeProps {
   id?: string;
   name?: string;
 }
