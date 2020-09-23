@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useReducer, useContext } from 'react';
 import { Menu, Dropdown } from 'antd';
 import { NodeProps } from '../type';
 import { BranchNodeProps } from '../BranchNode';
@@ -12,39 +12,41 @@ import {
   addConditionNode,
   deleteNode,
 } from '../../actions';
+import { reducer, nodeDataContext } from '../../reducers'
 
 export interface SingleNodeProps extends NodeProps {
-  type?: String;
   child?: SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 }
 
-const handleMenuClick = ({ key }: { key: any }) => {
-  const [nodeId, action] = key.split('_');
-  console.log(action)
-  switch (action) {
-    case 'add-single-node': {
-      addSingleNode(nodeId);
-      break;
-    }
-    case 'add-branch-node': {
-      addBranchNode(nodeId);
-      break;
-    }
-    case 'add-condition-node': {
-      addConditionNode(nodeId);
-      break;
-    }
-    case 'delete-node': {
-      deleteNode(nodeId);
-      break;
-    }
-    default:
-      break;
-  }
-};
-
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
+  const {state, dispatch} = useContext(nodeDataContext);
   const { id, child } = props;
+
+  const handleMenuClick = ({ key }: { key: any }) => {
+    const [nodeId, action] = key.split('_');
+    console.log(nodeId, action);
+    switch (action) {
+      case 'add-single-node': {
+        dispatch(addSingleNode(nodeId));
+        break;
+      }
+      case 'add-branch-node': {
+        dispatch(addBranchNode(nodeId));
+        break;
+      }
+      case 'add-condition-node': {
+        dispatch(addConditionNode(nodeId));
+        break;
+      }
+      case 'delete-node': {
+        dispatch(deleteNode(nodeId));
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
   const menu = (
     <Menu onClick={handleMenuClick}>
       <Menu.Item key={`${id}_add-single-node`}>新增子节点</Menu.Item>
@@ -52,6 +54,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
       <Menu.Item key={`${id}_add-condition-node`}>新增条件节点</Menu.Item>
     </Menu>
   );
+  
   return (
     <div className="single-node-wrapper">
       <Dropdown overlay={menu} trigger={['contextMenu']}>

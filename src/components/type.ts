@@ -1,4 +1,5 @@
 export interface NodeProps {
-  id?: string;
+  id: string;
   name?: string;
+  type: string;
 }

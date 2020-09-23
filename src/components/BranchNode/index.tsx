@@ -8,7 +8,6 @@ import './index.scss';
 import '../style.scss';
 
 export interface BranchNodeProps extends NodeProps {
-  type?: String;
   branches: Array<SingleNodeProps | BranchNodeProps | ConditionNodeProps>;
 }
 
