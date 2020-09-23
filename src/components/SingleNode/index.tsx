@@ -1,4 +1,4 @@
-import React, { useReducer, useContext } from 'react';
+import React, { useContext } from 'react';
 import { Menu, Dropdown } from 'antd';
 import { NodeProps } from '../type';
 import { BranchNodeProps } from '../BranchNode';
@@ -12,14 +12,14 @@ import {
   addConditionNode,
   deleteNode,
 } from '../../actions';
-import { reducer, nodeDataContext } from '../../reducers'
+import { nodeDataContext } from '../../reducers';
 
 export interface SingleNodeProps extends NodeProps {
   child?: SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 }
 
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
-  const {state, dispatch} = useContext(nodeDataContext);
+  const { dispatch } = useContext(nodeDataContext);
   const { id, child } = props;
 
   const handleMenuClick = ({ key }: { key: any }) => {
@@ -54,7 +54,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
       <Menu.Item key={`${id}_add-condition-node`}>新增条件节点</Menu.Item>
     </Menu>
   );
-  
+
   return (
     <div className="single-node-wrapper">
       <Dropdown overlay={menu} trigger={['contextMenu']}>
