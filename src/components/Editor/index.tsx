@@ -1,37 +1,38 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useEffect } from 'react';
 import { Button } from 'antd';
 import SingleNode, { SingleNodeProps } from '../SingleNode';
-import { reducer, nodeDataContext } from '../../reducers';
-import { addStartNode } from '../../actions';
+import { reducer, editorContext } from '../../reducers';
+import { addStartNode, updateNodes } from '../../actions';
 import './style.scss';
 
 export interface EditorProps {
-  nodeData?: SingleNodeProps;
+  data?: SingleNodeProps;
+  customizedNodes?: Array<{ id: string; shape: JSX.Element }>;
+  contextMenuDisabled?: boolean;
+  onNodeDoubleClick?: (id: string) => any;
   onSave?: (data: SingleNodeProps) => any;
 }
 
 const Editor: React.FC<EditorProps> = (props) => {
-  const { nodeData, onSave } = props;
-  const [state, dispatch] = useReducer(reducer, nodeData || {});
+  const { data, customizedNodes, onNodeDoubleClick, onSave } = props;
+  const [nodeData, dispatch] = useReducer(reducer, data || {});
+  
+  useEffect(() => {
+    !data && dispatch(addStartNode());
+    customizedNodes && dispatch(updateNodes(customizedNodes));
+  }, [data, customizedNodes]);
 
-  if (!nodeData) {
-    dispatch(addStartNode());
-  }
-
-  const nodeProps = nodeData as SingleNodeProps;
   return (
-    <nodeDataContext.Provider value={{ state, dispatch }}>
+    <editorContext.Provider value={{ nodeData, dispatch, onNodeDoubleClick }}>
       <div className="editor">
-        <Button onClick={onSave && (() => onSave(state as SingleNodeProps))}>
+        <Button onClick={onSave && (() => onSave(nodeData as SingleNodeProps))}>
           保存
         </Button>
         <SingleNode
-          id={nodeProps.id}
-          type={nodeProps.type}
-          child={nodeProps.child}
+          {...data as SingleNodeProps}
         ></SingleNode>
       </div>
-    </nodeDataContext.Provider>
+    </editorContext.Provider>
   );
 };
 

@@ -6,30 +6,16 @@ import ConditionNode, { ConditionNodeProps } from '../components/ConditionNode';
 type ChildNodeProps = SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 
 const renderChildNode = (childNodeProps: ChildNodeProps) => {
+  if (!childNodeProps.visible) return null;
   switch (childNodeProps.type) {
     case 'single-node':
-      return (
-        <SingleNode
-          id={childNodeProps.id}
-          type={childNodeProps.type}
-          child={(childNodeProps as SingleNodeProps).child}
-        ></SingleNode>
-      );
+      return <SingleNode {...(childNodeProps as SingleNodeProps)}></SingleNode>;
     case 'branch-node':
-      return (
-        <BranchNode
-          id={childNodeProps.id}
-          type={childNodeProps.type}
-          branches={(childNodeProps as BranchNodeProps).branches}
-        ></BranchNode>
-      );
+      return <BranchNode {...(childNodeProps as BranchNodeProps)}></BranchNode>;
     case 'condition-node':
       return (
         <ConditionNode
-          id={childNodeProps.id}
-          type={childNodeProps.type}
-          conditions={(childNodeProps as ConditionNodeProps).conditions}
-          child={(childNodeProps as ConditionNodeProps).child}
+          {...(childNodeProps as ConditionNodeProps)}
         ></ConditionNode>
       );
     default:

@@ -1,64 +1,47 @@
 import React, { useContext } from 'react';
-import { Menu, Dropdown } from 'antd';
+import { Dropdown } from 'antd';
 import { NodeProps } from '../type';
 import { BranchNodeProps } from '../BranchNode';
 import { ConditionNodeProps } from '../ConditionNode';
 import Link from '../Link';
+import useNodeMenu from '../../hooks/useNodeMenu';
 import renderChildNode from '../../utils/renderChildNode';
 import './index.scss';
-import {
-  addSingleNode,
-  addBranchNode,
-  addConditionNode,
-  deleteNode,
-} from '../../actions';
-import { nodeDataContext } from '../../reducers';
+import { editorContext } from '../../reducers';
+
+const MENU_CONFIG = [
+  { action: 'add-single-node', desc: '新增子节点' },
+  { action: 'add-branch-node', desc: '新增分支节点' },
+  { action: 'add-condition-node', desc: '新增条件节点' },
+  { action: 'delete-node', desc: '删除当前节点' },
+  { action: 'delete-node-and-children', desc: '删除当前节点及子节点' },
+];
 
 export interface SingleNodeProps extends NodeProps {
   child?: SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 }
 
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
-  const { dispatch } = useContext(nodeDataContext);
-  const { id, child } = props;
-
-  const handleMenuClick = ({ key }: { key: any }) => {
-    const [nodeId, action] = key.split('_');
-    console.log(nodeId, action);
-    switch (action) {
-      case 'add-single-node': {
-        dispatch(addSingleNode(nodeId));
-        break;
-      }
-      case 'add-branch-node': {
-        dispatch(addBranchNode(nodeId));
-        break;
-      }
-      case 'add-condition-node': {
-        dispatch(addConditionNode(nodeId));
-        break;
-      }
-      case 'delete-node': {
-        dispatch(deleteNode(nodeId));
-        break;
-      }
-      default:
-        break;
-    }
-  };
-
-  const menu = (
-    <Menu onClick={handleMenuClick}>
-      <Menu.Item key={`${id}_add-single-node`}>新增子节点</Menu.Item>
-      <Menu.Item key={`${id}_add-branch-node`}>新增分支节点</Menu.Item>
-      <Menu.Item key={`${id}_add-condition-node`}>新增条件节点</Menu.Item>
-    </Menu>
-  );
+  const { id, child, customShape } = props;
+  let menuConfig = [...MENU_CONFIG];
+  if (!child) {
+    menuConfig = menuConfig.filter(
+      (config) => config.action !== 'delete-node-and-children'
+    );
+  }
+  const menu = useNodeMenu(id, menuConfig);
+  const { onNodeDoubleClick } = useContext(editorContext);
 
   return (
     <div className="single-node-wrapper">
       <Dropdown overlay={menu} trigger={['contextMenu']}>
-        <div className="node"></div>
+        <div onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}>
+          {customShape ? (
+            <div>{customShape}</div>
+          ) : (
+            <div className="node"></div>
+          )}
+        </div>
       </Dropdown>
       {child && <Link></Link>}
       {child && renderChildNode(child)}

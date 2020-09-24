@@ -1,5 +1,14 @@
 import React, { createContext } from 'react';
-import { ADD_SINGLE_NODE } from '../actions';
+import {
+  ADD_SINGLE_NODE,
+  ADD_BRANCH_NODE,
+  ADD_CONDITION_NODE,
+  UPDATE_NODES,
+  FOLD_NODES,
+  UNFOLD_NODES,
+  DELETE_NODE,
+  DELETE_NODE_AND_CHILDREN,
+} from '../actions';
 import { SingleNodeProps } from '../components/SingleNode';
 import { BranchNodeProps } from '../components/BranchNode';
 import { ConditionNodeProps } from '../components/ConditionNode';
@@ -10,63 +19,127 @@ type NodeProps =
   | ConditionNodeProps
   | undefined;
 
-const findNode: (node: NodeProps, id: string) => NodeProps = (node, id) => {
-  console.log(node, id);
+const findNode: (
+  node: NodeProps,
+  match: (...args: any) => boolean
+) => NodeProps = (node, match) => {
   if (!node) return;
-  if (node.id === id) {
+  if (match(node)) {
     return node;
   }
   switch (node.type) {
     case 'single-node':
-      return findNode((node as SingleNodeProps).child, id);
+      return findNode((node as SingleNodeProps).child, match);
     case 'branch-node': {
       for (let branch of (node as BranchNodeProps).branches) {
-        const node = findNode(branch, id);
+        const node = findNode(branch, match);
         if (node) return node;
       }
       return;
     }
     case 'condition-node': {
       for (let condition of (node as ConditionNodeProps).conditions) {
-        const node = findNode(condition, id);
+        const node = findNode(condition, match);
         if (node) return node;
       }
-      return findNode((node as ConditionNodeProps).child, id);
+      return findNode((node as ConditionNodeProps).child, match);
     }
     default:
       return;
   }
 };
 
-const reducer = (state = {}, action: any) => {
-  // console.log(state);
+const _findNodeById: (node: NodeProps, id: string) => boolean = (node, id) => {
+  if (!node) return false;
+  return node.id === id;
+};
+
+const findNodeById = (nodeData: NodeProps, id: string) => {
+  return findNode(nodeData, (node) => _findNodeById(node, id));
+};
+
+const _findParentNode: (node: NodeProps, id: string) => boolean = (
+  node,
+  id
+) => {
+  if (!node) return false;
+  node = node as SingleNodeProps | ConditionNodeProps;
+  return !!node.child && node.child.id === id;
+};
+
+const findParentNode = (nodeData: NodeProps, childNodeId: string) => {
+  return findNode(nodeData, (node) => _findParentNode(node, childNodeId));
+};
+
+const handleNodeOperation = (nodeData = {}, action: any) => {
+  const { id } = action.payload;
+  let curNode = findNodeById(nodeData as NodeProps, id);
+  if (!curNode) return nodeData;
+
   switch (action.type) {
-    case ADD_SINGLE_NODE: {
-      const { nodeId, id, type } = action.payload;
-      const node = findNode(state as NodeProps, nodeId);
-      console.log('###', node);
-
-      if (!node || node.type === 'branch-node') return state;
-      const curNode = node as SingleNodeProps | ConditionNodeProps;
+    case ADD_SINGLE_NODE:
+    case ADD_BRANCH_NODE:
+    case ADD_CONDITION_NODE: {
+      curNode = curNode as SingleNodeProps | ConditionNodeProps;
+      const newNode = JSON.parse(JSON.stringify(action.payload.node));
       if (curNode.child) {
-        let newNode = curNode.child as SingleNodeProps;
         newNode.child = { ...curNode.child };
-        newNode.id = id;
-        newNode.type = type;
-      } else {
-        curNode.child = { id, type };
       }
-
-      return { ...state };
+      curNode.child = newNode;
+      return { ...nodeData };
     }
+    case DELETE_NODE:
+    case DELETE_NODE_AND_CHILDREN: {
+      let parentNode = findParentNode(nodeData as NodeProps, id);
+      console.log('parentNode', parentNode, curNode);
+      if (!parentNode) return nodeData;
+      curNode = curNode as SingleNodeProps | ConditionNodeProps;
+      parentNode = parentNode as SingleNodeProps | ConditionNodeProps;
+      if (action.type === DELETE_NODE && curNode.child) {
+        parentNode.child = curNode.child;
+      }
+      parentNode.child = undefined;
+      console.log('parentNode', parentNode, curNode);
+
+      return { ...nodeData };
+    }
+    case FOLD_NODES:
+    case UNFOLD_NODES: {
+      (curNode as BranchNodeProps | ConditionNodeProps).folded =
+        action.type === FOLD_NODES ? true : false;
+      for (let subNode of (curNode as BranchNodeProps).branches ||
+        (curNode as ConditionNodeProps).conditions) {
+        subNode.visible = action.type === FOLD_NODES ? false : true;
+      }
+      return { ...nodeData };
+    }
+    default:
+      return nodeData;
   }
-  return state;
+};
+
+const reducer = (nodeData = {}, action: any) => {
+  switch (action.type) {
+    case UPDATE_NODES: {
+      const { customizedNodes } = action;
+      for (let item of customizedNodes) {
+        const node = findNodeById(nodeData as NodeProps, action.id);
+        if (node) {
+          node.customShape = item.shape;
+        }
+      }
+      return { ...nodeData };
+    }
+    default:
+      return handleNodeOperation(nodeData, action);
+  }
 };
 
 const initialState: {
-  state: any;
+  nodeData: any;
   dispatch: React.Dispatch<any>;
-} = { state: { id: '' }, dispatch: () => {} };
-const nodeDataContext = createContext(initialState);
+  onNodeDoubleClick?: (id: string) => any;
+} = { nodeData: {}, dispatch: () => {}, onNodeDoubleClick: () => {} };
+const editorContext = createContext(initialState);
 
-export { reducer, nodeDataContext };
+export { reducer, editorContext };
