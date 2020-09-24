@@ -1,12 +1,17 @@
 import React from 'react';
-import SingleNode, { SingleNodeProps } from '../components/SingleNode';
-import BranchNode, { BranchNodeProps } from '../components/BranchNode';
-import ConditionNode, { ConditionNodeProps } from '../components/ConditionNode';
+import SingleNode from '../components/SingleNode';
+import BranchNode from '../components/BranchNode';
+import ConditionNode from '../components/ConditionNode';
+import {
+  NodeProps,
+  SingleNodeProps,
+  BranchNodeProps,
+  ConditionNodeProps,
+} from '../Editor';
 
-type ChildNodeProps = SingleNodeProps | BranchNodeProps | ConditionNodeProps;
-
-const renderChildNode = (childNodeProps: ChildNodeProps) => {
+const renderChildNode = (childNodeProps: NodeProps) => {
   if (!childNodeProps.visible) return null;
+
   switch (childNodeProps.type) {
     case 'single-node':
       return <SingleNode {...(childNodeProps as SingleNodeProps)}></SingleNode>;

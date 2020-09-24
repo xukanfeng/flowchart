@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 // import App from './App';
-import Editor from './components/Editor';
+import Editor from './Editor';
 import { fakeData } from './components/fakeData';
 import * as serviceWorker from './serviceWorker';
 

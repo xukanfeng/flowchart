@@ -9,6 +9,8 @@ import {
   foldNodes,
   unfoldNodes,
   deleteNodeAndChildren,
+  addBranchSubNode,
+  addConditionSubNode,
 } from '../actions';
 
 export interface MenuConfig {
@@ -33,6 +35,14 @@ const useNodeMenu = (nodeId: string, menuConfig: Array<MenuConfig>) => {
       }
       case 'add-condition-node': {
         dispatch(addConditionNode(nodeId));
+        break;
+      }
+      case 'add-branch-sub-node': {
+        dispatch(addBranchSubNode(nodeId));
+        break;
+      }
+      case 'add-condition-sub-node': {
+        dispatch(addConditionSubNode(nodeId));
         break;
       }
       case 'delete-node': {
