@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom';
 import './index.css';
 // import App from './App';
 import Editor from './Editor';
-import { fakeData } from './components/fakeData';
+import { data } from './mockData';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Editor customizedNodes={[{id: "10", shape: (<div style={{height: '50px', width: '200px', background: 'yellow'}}>aaa</div>)}]} onNodeDoubleClick={id => console.log(id)} onSave={data => console.log(data)}/>
+    <Editor data={data} customizedNodes={[{id: "10", shape: (<div style={{height: '50px', width: '200px', background: 'yellow'}}>aaa</div>)}]} onNodeDoubleClick={id => console.log(id)} onSave={data => console.log(data)}/>
   </React.StrictMode>,
   document.getElementById('root')
 );

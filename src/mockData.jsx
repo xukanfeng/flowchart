@@ -1,0 +1,123 @@
+export const data = {
+  id: 'dfbdd221-f24c-4797-a736-8b0ff21d655d',
+  type: 'single-node',
+  visible: true,
+  deletable: false,
+  child: {
+    id: '12ed01e1-02d5-47fc-9cb3-635273a915a8',
+    type: 'condition-node',
+    visible: true,
+    deletable: true,
+    subNodes: [
+      {
+        id: '3634d357-87dd-484d-bd34-574079725565',
+        type: 'single-node',
+        visible: true,
+        deletable: false,
+        child: {
+          id: 'ece7e7e2-3ebf-48cb-9238-1bca913e9d0b',
+          type: 'condition-node',
+          visible: true,
+          deletable: true,
+          subNodes: [
+            {
+              id: '4d066615-e958-43b7-9cde-32f885612a7c',
+              type: 'single-node',
+              visible: true,
+              deletable: true,
+              child: null,
+            },
+            {
+              id: '5c040bcf-2923-4466-ad4c-7e94b9b8be8b',
+              type: 'single-node',
+              visible: true,
+              deletable: true,
+              child: {
+                id: 'c78ffd1c-be31-41dc-8638-af2ea89df117',
+                type: 'condition-node',
+                visible: true,
+                deletable: true,
+                subNodes: [
+                  {
+                    id: '17b86dc8-4c4b-4782-b7cc-e6ea2f347d82',
+                    type: 'single-node',
+                    visible: true,
+                    deletable: false,
+                    child: null,
+                  },
+                  {
+                    id: '240658c9-1758-4f82-ba45-40aaa50b1320',
+                    type: 'single-node',
+                    visible: true,
+                    deletable: false,
+                    child: null,
+                  },
+                ],
+                child: null,
+              },
+            },
+            {
+              id: '0f32354f-52bf-4108-8e3a-3a63ae350846',
+              type: 'single-node',
+              visible: true,
+              deletable: true,
+              child: null,
+            },
+          ],
+          child: null,
+        },
+      },
+      {
+        id: 'b6fb49a2-5919-422c-aa5e-7be210e8fb07',
+        type: 'single-node',
+        visible: true,
+        deletable: false,
+        child: {
+          id: '11962114-38ec-4b66-bc29-eb44f5a66603',
+          type: 'condition-node',
+          visible: true,
+          deletable: true,
+          subNodes: [
+            {
+              id: '0ec122c0-7812-4a4b-a2a3-d35d5c68a291',
+              type: 'single-node',
+              visible: true,
+              deletable: false,
+              child: null,
+            },
+            {
+              id: '4ad7b071-861c-4b0c-85f7-7b73f5468f98',
+              type: 'single-node',
+              visible: true,
+              deletable: false,
+              child: null,
+            },
+          ],
+          child: null,
+        },
+      },
+    ],
+    child: {
+      id: '6549d9c4-06ef-4aeb-8fce-0356aeb2721a',
+      type: 'branch-node',
+      visible: true,
+      deletable: true,
+      subNodes: [
+        {
+          id: '1c16ee1e-14e3-4c22-a46a-6f118cfe530d',
+          type: 'single-node',
+          visible: true,
+          deletable: false,
+          child: null,
+        },
+        {
+          id: 'a2e22399-b191-4b6a-8eaa-56d4cd61054e',
+          type: 'single-node',
+          visible: true,
+          deletable: false,
+          child: null,
+        },
+      ],
+    },
+  },
+};

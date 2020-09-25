@@ -18,7 +18,7 @@ export interface NodeBaseProps {
 export type NodeProps = SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 
 export interface SingleNodeProps extends NodeBaseProps {
-  child?: NodeProps | null; // the child of the last single-node of condition in condition-node is null.
+  child?: NodeProps | null; // the child of the last single-node of condition in condition-node is null, distinguish from the ones in other situation which are undefined.
 }
 
 export interface BranchNodeProps extends NodeBaseProps {
@@ -29,7 +29,7 @@ export interface BranchNodeProps extends NodeBaseProps {
 export interface ConditionNodeProps extends NodeBaseProps {
   folded: boolean;
   subNodes: Array<NodeProps>;
-  child?: NodeProps | null; // the child of the last condition-node (if exists) of condition in condition-node is null.
+  child?: NodeProps | null; // the child of the last condition-node (if exists) of condition in condition-node is null, distinguish from the ones in other situation which are undefined.
 }
 
 export type NodeData = NodeProps;
