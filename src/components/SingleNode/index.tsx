@@ -26,17 +26,19 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
         config.action !== 'delete-children' &&
         config.action !== 'delete-node-and-children'
     );
-  } else {
+  }
+  if (child || child === null) {
     menuConfig = menuConfig.filter(
       (config) => config.action !== 'add-branch-node'
     );
   }
   if (!deletable) {
     menuConfig = menuConfig.filter(
-      (config) =>
-        config.action !== 'delete-node' &&
-        config.action !== 'delete-node-and-children'
+      (config) => config.action !== 'delete-node-and-children'
     );
+  }
+  if (!deletable && !child) {
+    menuConfig = menuConfig.filter((config) => config.action !== 'delete-node');
   }
 
   const menu = useNodeMenu(id, menuConfig);

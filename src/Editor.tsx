@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from 'react';
+import React, { useReducer, useEffect, ReactNode } from 'react';
 import { Button } from 'antd';
 import SingleNode from './components/SingleNode';
 import { reducer, editorContext } from './reducers';
@@ -12,12 +12,13 @@ export interface NodeBaseProps {
   visible: boolean;
   deletable: boolean;
   customShape?: JSX.Element;
+  toolTip?: string | ReactNode;
 }
 
 export type NodeProps = SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 
 export interface SingleNodeProps extends NodeBaseProps {
-  child?: NodeProps;
+  child?: NodeProps | null; // the child of the last single-node of condition in condition-node is null.
 }
 
 export interface BranchNodeProps extends NodeBaseProps {
@@ -28,7 +29,7 @@ export interface BranchNodeProps extends NodeBaseProps {
 export interface ConditionNodeProps extends NodeBaseProps {
   folded: boolean;
   subNodes: Array<NodeProps>;
-  child?: NodeProps;
+  child?: NodeProps | null; // the child of the last condition-node (if exists) of condition in condition-node is null.
 }
 
 export type NodeData = NodeProps;
@@ -39,9 +40,14 @@ export type BranchNodeData = BranchNodeProps;
 
 export type ConditionNodeData = ConditionNodeProps;
 
+export interface CustomizedNode {
+  id: string;
+  shape: JSX.Element;
+}
+
 export interface EditorProps {
   data?: SingleNodeData;
-  customizedNodes?: Array<{ id: string; shape: JSX.Element }>;
+  customizedNodes?: Array<CustomizedNode>;
   contextMenuDisabled?: boolean;
   onNodeDoubleClick?: (id: string) => any;
   onSave?: (data: SingleNodeData) => any;

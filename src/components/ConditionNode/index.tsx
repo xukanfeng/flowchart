@@ -13,7 +13,7 @@ const MENU_CONFIG = [
   { action: 'add-branch-node', desc: '新增分支节点' },
   { action: 'add-condition-node', desc: '新增条件节点' },
   { action: 'delete-node', desc: '删除当前节点' },
-  { action: 'delete-child-node', desc: '删除子节点' },
+  { action: 'delete-children', desc: '删除子节点' },
   { action: 'delete-node-and-children', desc: '删除当前节点及子节点' },
   { action: 'fold-nodes', desc: '收起节点' },
   { action: 'unfold-nodes', desc: '展开节点' },
@@ -29,7 +29,8 @@ const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
         config.action !== 'delete-children' &&
         config.action !== 'delete-node-and-children'
     );
-  } else {
+  }
+  if (child || child === null) {
     menuConfig = menuConfig.filter(
       (config) => config.action !== 'add-branch-node'
     );

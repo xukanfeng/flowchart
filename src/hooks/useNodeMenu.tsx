@@ -4,13 +4,14 @@ import { editorContext } from '../reducers';
 import {
   addSingleNode,
   addBranchNode,
+  addBranchSubNode,
   addConditionNode,
+  addConditionSubNode,
   deleteNode,
+  deleteChildren,
+  deleteNodeAndChildren,
   foldNodes,
   unfoldNodes,
-  deleteNodeAndChildren,
-  addBranchSubNode,
-  addConditionSubNode,
 } from '../actions';
 
 export interface MenuConfig {
@@ -23,7 +24,7 @@ const useNodeMenu = (nodeId: string, menuConfig: Array<MenuConfig>) => {
 
   const handleMenuClick = ({ key }: { key: any }) => {
     const [nodeId, action] = key.split('_');
-    console.log(nodeId, action);
+    console.log('handleMenuClick', nodeId, action);
     switch (action) {
       case 'add-single-node': {
         dispatch(addSingleNode(nodeId));
@@ -33,12 +34,12 @@ const useNodeMenu = (nodeId: string, menuConfig: Array<MenuConfig>) => {
         dispatch(addBranchNode(nodeId));
         break;
       }
-      case 'add-condition-node': {
-        dispatch(addConditionNode(nodeId));
-        break;
-      }
       case 'add-branch-sub-node': {
         dispatch(addBranchSubNode(nodeId));
+        break;
+      }
+      case 'add-condition-node': {
+        dispatch(addConditionNode(nodeId));
         break;
       }
       case 'add-condition-sub-node': {
@@ -47,6 +48,10 @@ const useNodeMenu = (nodeId: string, menuConfig: Array<MenuConfig>) => {
       }
       case 'delete-node': {
         dispatch(deleteNode(nodeId));
+        break;
+      }
+      case 'delete-children': {
+        dispatch(deleteChildren(nodeId));
         break;
       }
       case 'delete-node-and-children': {

@@ -1,4 +1,6 @@
 import { v4 as uuid } from 'uuid';
+import { CustomizedNode } from '../Editor';
+
 export const ADD_START_NODE = 'ADD_START_NODE';
 export const ADD_SINGLE_NODE = 'ADD_SINGLE_NODE';
 export const ADD_BRANCH_NODE = 'ADD_BRANCH_NODE';
@@ -31,7 +33,7 @@ export const addSingleNode = (id: string) => ({
   type: ADD_SINGLE_NODE,
   payload: {
     id,
-    node: { id: uuid(), type: 'single-node', visible: true, deletable: false },
+    node: { id: uuid(), type: 'single-node', visible: true, deletable: true },
   },
 });
 
@@ -44,18 +46,20 @@ export const addBranchNode = (id: string) => ({
       type: 'branch-node',
       visible: true,
       deletable: true,
-      branches: [
+      subNodes: [
         {
           id: uuid(),
           type: 'single-node',
           visible: true,
           deletable: false,
+          child: null,
         },
         {
           id: uuid(),
           type: 'single-node',
           visible: true,
           deletable: false,
+          child: null,
         },
       ],
     },
@@ -66,7 +70,13 @@ export const addBranchSubNode = (id: string) => ({
   type: ADD_BRANCH_SUB_NODE,
   payload: {
     id,
-    node: { id: uuid(), type: 'single-node', visible: true, deletable: true },
+    node: {
+      id: uuid(),
+      type: 'single-node',
+      visible: true,
+      deletable: true,
+      child: null,
+    },
   },
 });
 
@@ -79,18 +89,20 @@ export const addConditionNode = (id: string) => ({
       type: 'condition-node',
       visible: true,
       deletable: true,
-      conditions: [
+      subNodes: [
         {
           id: uuid(),
           type: 'single-node',
           visible: true,
           deletable: false,
+          child: null,
         },
         {
           id: uuid(),
           type: 'single-node',
           visible: true,
           deletable: false,
+          child: null,
         },
       ],
     },
@@ -99,7 +111,16 @@ export const addConditionNode = (id: string) => ({
 
 export const addConditionSubNode = (id: string) => ({
   type: ADD_CONDITION_SUB_NODE,
-  payload: { id },
+  payload: {
+    id,
+    node: {
+      id: uuid(),
+      type: 'single-node',
+      visible: true,
+      deletable: true,
+      child: null,
+    },
+  },
 });
 
 export const deleteNode = (id: string) => ({
@@ -127,9 +148,7 @@ export const unfoldNodes = (id: string) => ({
   payload: { id },
 });
 
-export const updateNodes = (
-  customizedNodes: Array<{ id: string; shape: JSX.Element }>
-) => ({
+export const updateNodes = (customizedNodes: Array<CustomizedNode>) => ({
   type: UPDATE_NODES,
   customizedNodes,
 });

@@ -6,7 +6,7 @@ import {
 } from '../Editor';
 
 export const findNode: (
-  nodeData: NodeData | undefined,
+  nodeData: NodeData | undefined | null,
   match: (...args: any) => boolean
 ) => NodeData | undefined = (nodeData, match) => {
   if (!nodeData) return;
@@ -52,4 +52,25 @@ const _findParentNode: (node: NodeData, childNodeId: string) => boolean = (
 
 export const findParentNode = (nodeData: NodeData, childNodeId: string) => {
   return findNode(nodeData, (node) => _findParentNode(node, childNodeId));
+};
+
+const _findBranchOrConditionNode: (
+  node: NodeData,
+  subNodeId: string
+) => boolean = (node, subNodeId) => {
+  if (!node) return false;
+  const nodeData = node as BranchNodeData | ConditionNodeData;
+  return (
+    !!nodeData.subNodes &&
+    nodeData.subNodes.some((subNode) => subNode.id === subNodeId)
+  );
+};
+
+export const findBranchOrConditionNode = (
+  nodeData: NodeData,
+  subNodeId: string
+) => {
+  return findNode(nodeData, (node) =>
+    _findBranchOrConditionNode(node, subNodeId)
+  );
 };
