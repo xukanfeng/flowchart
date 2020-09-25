@@ -12,6 +12,7 @@ export const DELETE_CHILDREN = 'DELETE_CHILDREN';
 export const DELETE_NODE_AND_CHILDREN = 'DELETE_NODE_AND_CHILDREN';
 export const FOLD_NODES = 'FOLD_NODES';
 export const UNFOLD_NODES = 'UNFOLD_NODES';
+export const SWAP_NODES = 'SWAP_NODES';
 export const UPDATE_NODES = 'UPDATE_NODES';
 
 export const UNDO = 'UNDO';
@@ -146,6 +147,14 @@ export const foldNodes = (id: string) => ({
 export const unfoldNodes = (id: string) => ({
   type: UNFOLD_NODES,
   payload: { id },
+});
+
+export const swapNodes = (sourceNodeId: string, targetNodeId: string) => ({
+  type: SWAP_NODES,
+  payload: {
+    sourceNodeId,
+    targetNodeId,
+  },
 });
 
 export const updateNodes = (customizedNodes: Array<CustomizedNode>) => ({

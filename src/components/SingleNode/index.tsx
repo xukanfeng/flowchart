@@ -1,9 +1,11 @@
 import React, { useContext } from 'react';
 import { Dropdown } from 'antd';
 import Link from '../Link';
+import { useDrag, useDrop } from 'ahooks';
 import useNodeMenu from '../../hooks/useNodeMenu';
 import renderChildNode from '../../utils/renderChildNode';
 import { editorContext } from '../../reducers';
+import { swapNodes } from '../../actions';
 import { SingleNodeProps } from '../../Editor';
 import './index.scss';
 
@@ -42,12 +44,22 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
   }
 
   const menu = useNodeMenu(id, menuConfig);
-  const { onNodeDoubleClick } = useContext(editorContext);
+  const { dispatch, onNodeDoubleClick } = useContext(editorContext);
+  const getDragProps = useDrag();
+  const [sourceNodeId] = useDrop({
+    onDom: (sourceNodeId: string) => {
+      dispatch(swapNodes(sourceNodeId, id));
+    },
+  });
 
   return (
     <div className="single-node-wrapper">
       <Dropdown overlay={menu} trigger={['contextMenu']}>
-        <div onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}>
+        <div
+          onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}
+          {...getDragProps(id)}
+          {...sourceNodeId}
+        >
           {customShape ? (
             <div>{customShape}</div>
           ) : (

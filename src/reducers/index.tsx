@@ -11,6 +11,7 @@ import {
   DELETE_NODE_AND_CHILDREN,
   FOLD_NODES,
   UNFOLD_NODES,
+  SWAP_NODES,
   UPDATE_NODES,
 } from '../actions';
 import {
@@ -82,7 +83,7 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
           }
           return false;
         });
-        // branches or conditions can only be deleted while there are two or more in branch-node or condition-node
+        // branches or conditions can only be deleted while there are two or more in branch-node or condition-node.
         if (branchOrConditionNodeData.subNodes.length > 2) {
           branchOrConditionNodeData.subNodes.forEach((subNode) => {
             subNode.deletable = true;
@@ -133,6 +134,57 @@ const reducer = (nodeData = {}, action: any) => {
     case ADD_START_NODE: {
       return { ...action.payload.node };
     }
+    case SWAP_NODES: {
+      const { sourceNodeId, targetNodeId } = action.payload;
+      if (sourceNodeId === targetNodeId) return nodeData;
+
+      const branchOrConditionNodeOfSourceNode = findBranchOrConditionNode(
+        nodeData as NodeData,
+        sourceNodeId
+      );
+      const branchOrConditionNodeOfTargetNode = findBranchOrConditionNode(
+        nodeData as NodeData,
+        targetNodeId
+      );
+      if (
+        !branchOrConditionNodeOfSourceNode ||
+        !branchOrConditionNodeOfTargetNode ||
+        branchOrConditionNodeOfSourceNode !== branchOrConditionNodeOfTargetNode
+      )
+        return nodeData;
+
+      const branchOrConditionNodeData = branchOrConditionNodeOfSourceNode as
+        | BranchNodeData
+        | ConditionNodeData;
+      let sourceNodeIndex = -1;
+      branchOrConditionNodeData.subNodes.some((subNode, index) => {
+        if (subNode.id === sourceNodeId) {
+          sourceNodeIndex = index;
+          return true;
+        }
+        return false;
+      });
+      let targetNodeIndex = -1;
+      branchOrConditionNodeData.subNodes.some((subNode, index) => {
+        if (subNode.id === targetNodeId) {
+          targetNodeIndex = index;
+          return true;
+        }
+        return false;
+      });
+      let targetNode = findNodeById(nodeData as NodeData, targetNodeId);
+      branchOrConditionNodeData.subNodes.splice(
+        targetNodeIndex,
+        1,
+        branchOrConditionNodeData.subNodes.splice(
+          sourceNodeIndex,
+          1,
+          targetNode as NodeData
+        )[0]
+      );
+
+      return { ...nodeData };
+    }
     case UPDATE_NODES: {
       const { customizedNodes } = action;
       for (let item of customizedNodes) {
@@ -141,6 +193,7 @@ const reducer = (nodeData = {}, action: any) => {
           node.customShape = item.shape;
         }
       }
+
       return { ...nodeData };
     }
     default:
