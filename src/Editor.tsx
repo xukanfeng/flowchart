@@ -1,4 +1,10 @@
-import React, { useReducer, useEffect, ReactNode } from 'react';
+import React, {
+  useState,
+  useReducer,
+  useRef,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { Button } from 'antd';
 import SingleNode from './components/SingleNode';
 import { reducer, editorContext } from './reducers';
@@ -51,11 +57,70 @@ export interface EditorProps {
   contextMenuDisabled?: boolean;
   onNodeDoubleClick?: (id: string) => any;
   onSave?: (data: SingleNodeData) => any;
+  dragable?: boolean;
+  scalable?: boolean;
 }
 
 const Editor: React.FC<EditorProps> = (props) => {
-  const { data, customizedNodes, onNodeDoubleClick, onSave } = props;
+  const {
+    data,
+    customizedNodes,
+    onNodeDoubleClick,
+    onSave,
+    dragable,
+    scalable,
+  } = props;
   const [nodeData, dispatch] = useReducer(reducer, data || {});
+  const [scaleRate, setScaleRate] = useState(100);
+  const [topPos, setTopPos] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (event: any) => {
+    const wheel = /*event.wheelDelta || */ event.detail;
+    wheel > 0
+      ? setScaleRate((prev) => prev + 2)
+      : setScaleRate((prev) => prev - 2);
+    event.preventDefault();
+  };
+
+  const move = (event: any) => {
+    if (!dragable) return;
+    containerRef!.current!.style.cursor = 'move';
+    const x = event.clientX - editorRef!.current!.offsetLeft;
+    const y = event.clientY - editorRef!.current!.offsetTop;
+    document.onmousemove = (event) => {
+      editorRef!.current!.style.left = event.clientX - x + 'px';
+      editorRef!.current!.style.top = event.clientY - y + 'px';
+    };
+    document.onmouseup = (event) => {
+      containerRef!.current!.style.cursor = 'default';
+      document.onmousemove = null;
+      document.onmouseup = null;
+    };
+  };
+
+  const initPos = () => {
+    const containerWidth = containerRef!.current!.offsetWidth;
+    const editorWidth = editorRef!.current!.offsetWidth;
+    const editorHeight = editorRef!.current!.offsetHeight;
+    scaleRate < 100
+      ? setTopPos((prev) => prev - (editorHeight * (1 - scaleRate / 100)) / 2)
+      : setTopPos((prev) => prev + (editorHeight * (scaleRate / 100 - 1)) / 2);
+    editorRef!.current!.style.left = (containerWidth - editorWidth) / 2 + 'px';
+    editorRef!.current!.style.top = topPos + 'px';
+  };
+
+  useEffect(() => {
+    if (scalable) {
+      containerRef!.current!.onmousedown = (event) => move(event);
+      containerRef!.current!.addEventListener('mousewheel', scroll);
+    }
+    initPos();
+    return () => {
+      containerRef!.current!.removeEventListener('mousewheel', scroll);
+    };
+  }, [containerRef]);
 
   useEffect(() => {
     !data && dispatch(addStartNode());
@@ -64,11 +129,21 @@ const Editor: React.FC<EditorProps> = (props) => {
 
   return (
     <editorContext.Provider value={{ nodeData, dispatch, onNodeDoubleClick }}>
-      <div className="editor">
+      <div className="container" ref={containerRef}>
         <Button onClick={onSave && (() => onSave(nodeData as SingleNodeData))}>
           保存
         </Button>
-        <SingleNode {...(nodeData as SingleNodeProps)}></SingleNode>
+        <div
+          className="editor"
+          style={{
+            transform: `scale(${scaleRate / 100})`,
+            position: dragable ? 'absolute' : 'static',
+            top: topPos + 'px',
+          }}
+          ref={editorRef}
+        >
+          <SingleNode {...(nodeData as SingleNodeProps)}></SingleNode>
+        </div>
       </div>
     </editorContext.Provider>
   );

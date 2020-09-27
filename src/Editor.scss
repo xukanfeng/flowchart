@@ -1,7 +1,14 @@
-.editor {
-  transform: scale(1);
-  display: inline-block;
+.container{
   position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.editor {
+  // transform: scale(1);
+  display: inline-block;
+  // position: relative;
   width: 100%;
   height: 100%;
   padding: 54.5px 0;
