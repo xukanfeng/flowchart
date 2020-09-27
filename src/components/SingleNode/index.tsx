@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Dropdown } from 'antd';
+import { Tooltip, Dropdown } from 'antd';
 import Link from '../Link';
 import { useDrag, useDrop } from 'ahooks';
 import useNodeMenu from '../../hooks/useNodeMenu';
@@ -19,7 +19,7 @@ const MENU_CONFIG = [
 ];
 
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
-  const { id, child, deletable, customShape } = props;
+  const { id, child, deletable, customShape, toolTip } = props;
 
   let menuConfig = [...MENU_CONFIG];
   if (!child) {
@@ -54,19 +54,21 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
 
   return (
     <div className="single-node-wrapper">
-      <Dropdown overlay={menu} trigger={['contextMenu']}>
-        <div
-          onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}
-          {...getDragProps(id)}
-          {...sourceNodeId}
-        >
-          {customShape ? (
-            <div>{customShape}</div>
-          ) : (
-            <div className="node">{id}</div>
-          )}
-        </div>
-      </Dropdown>
+      <Tooltip title={!toolTip ? "" : toolTip!.title}>
+        <Dropdown overlay={menu} trigger={['contextMenu']}>
+          <div
+            onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}
+            {...getDragProps(id)}
+            {...sourceNodeId}
+          >
+            {customShape ? (
+              <div>{customShape}</div>
+            ) : (
+              <div className="node">{id}</div>
+            )}
+          </div>
+        </Dropdown>
+      </Tooltip>
       {child && <Link></Link>}
       {child && renderChildNode(child)}
     </div>

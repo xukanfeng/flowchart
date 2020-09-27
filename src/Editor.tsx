@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
-import { Button } from 'antd';
+import { Button, Slider } from 'antd';
 import SingleNode from './components/SingleNode';
 import { reducer, editorContext } from './reducers';
 import { addStartNode, updateNodes } from './actions';
@@ -18,7 +18,7 @@ export interface NodeBaseProps {
   visible: boolean;
   deletable: boolean;
   customShape?: JSX.Element;
-  toolTip?: string | ReactNode;
+  toolTip?: ToolTip;
 }
 
 export type NodeProps = SingleNodeProps | BranchNodeProps | ConditionNodeProps;
@@ -51,9 +51,17 @@ export interface CustomizedNode {
   shape: JSX.Element;
 }
 
+export interface ToolTip {
+  id: string;
+  title: string | ReactNode;
+  color?: string;
+  placement?: string;
+}
+
 export interface EditorProps {
   data?: SingleNodeData;
   customizedNodes?: Array<CustomizedNode>;
+  toolTips?: Array<ToolTip>;
   contextMenuDisabled?: boolean;
   onNodeDoubleClick?: (id: string) => any;
   onSave?: (data: SingleNodeData) => any;
@@ -61,91 +69,121 @@ export interface EditorProps {
   scalable?: boolean;
 }
 
+const DEFAULT_SCALE_RATE = 100;
+const MIN_SCALE_RATE = 20;
+const MAX_SCALE_RATE = 200;
+
 const Editor: React.FC<EditorProps> = (props) => {
+  console.log(props);
   const {
     data,
     customizedNodes,
+    toolTips,
     onNodeDoubleClick,
     onSave,
-    dragable,
-    scalable,
+    dragable = true,
+    scalable = true,
   } = props;
   const [nodeData, dispatch] = useReducer(reducer, data || {});
-  const [scaleRate, setScaleRate] = useState(100);
-  const [topPos, setTopPos] = useState(0);
+  const [scaleRate, setScaleRate] = useState(DEFAULT_SCALE_RATE);
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const scroll = (event: any) => {
-    const wheel = /*event.wheelDelta || */ event.detail;
-    wheel > 0
-      ? setScaleRate((prev) => prev + 2)
-      : setScaleRate((prev) => prev - 2);
-    event.preventDefault();
-  };
-
   const move = (event: any) => {
     if (!dragable) return;
-    containerRef!.current!.style.cursor = 'move';
-    const x = event.clientX - editorRef!.current!.offsetLeft;
-    const y = event.clientY - editorRef!.current!.offsetTop;
+    const containerEl = containerRef!.current!;
+    containerEl.style.cursor = 'move';
+
+    const editorEl = editorRef!.current!;
+    const x = event.clientX - editorEl.offsetLeft;
+    const y = event.clientY - editorEl.offsetTop;
     document.onmousemove = (event) => {
-      editorRef!.current!.style.left = event.clientX - x + 'px';
-      editorRef!.current!.style.top = event.clientY - y + 'px';
+      editorEl.style.left = event.clientX - x + 'px';
+      editorEl.style.top = event.clientY - y + 'px';
     };
     document.onmouseup = (event) => {
-      containerRef!.current!.style.cursor = 'default';
+      containerEl.style.cursor = 'default';
       document.onmousemove = null;
       document.onmouseup = null;
     };
   };
 
-  const initPos = () => {
-    const containerWidth = containerRef!.current!.offsetWidth;
-    const editorWidth = editorRef!.current!.offsetWidth;
-    const editorHeight = editorRef!.current!.offsetHeight;
-    scaleRate < 100
-      ? setTopPos((prev) => prev - (editorHeight * (1 - scaleRate / 100)) / 2)
-      : setTopPos((prev) => prev + (editorHeight * (scaleRate / 100 - 1)) / 2);
-    editorRef!.current!.style.left = (containerWidth - editorWidth) / 2 + 'px';
-    editorRef!.current!.style.top = topPos + 'px';
+  const scroll = (event: any) => {
+    // TODO: debouce
+    const wheel = event.wheelDelta || event.detail;
+    console.log('scroll');
+    wheel < 0
+      ? setScaleRate((prev) => (prev <= MIN_SCALE_RATE ? prev : prev - 5))
+      : setScaleRate((prev) => (prev >= MAX_SCALE_RATE ? prev : prev + 5));
+
+    event.preventDefault();
+  };
+
+  const initEditorPos = () => {
+    const containerEl = containerRef!.current!;
+    const editorEl = editorRef!.current!;
+    const topPos = (editorEl.offsetHeight * (scaleRate / 100 - 1)) / 2;
+
+    editorEl.style.left =
+      (containerEl.offsetWidth - editorEl.offsetWidth) / 2 + 'px';
+    editorEl.style.top = topPos + 'px';
   };
 
   useEffect(() => {
-    if (scalable) {
-      containerRef!.current!.onmousedown = (event) => move(event);
-      containerRef!.current!.addEventListener('mousewheel', scroll);
-    }
-    initPos();
+    const containerEl = containerRef!.current!;
+
+    initEditorPos();
+    dragable && (containerEl.onmousedown = (event) => move(event));
+    scalable && containerEl.addEventListener('mousewheel', scroll);
+
     return () => {
-      containerRef!.current!.removeEventListener('mousewheel', scroll);
+      containerEl.removeEventListener('mousewheel', scroll);
     };
-  }, [containerRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     !data && dispatch(addStartNode());
-    customizedNodes && dispatch(updateNodes(customizedNodes));
-  }, [data, customizedNodes]);
+    (customizedNodes || toolTips) &&
+      dispatch(updateNodes(customizedNodes, toolTips));
+  }, [data, customizedNodes, toolTips]);
 
   return (
-    <editorContext.Provider value={{ nodeData, dispatch, onNodeDoubleClick }}>
-      <div className="container" ref={containerRef}>
-        <Button onClick={onSave && (() => onSave(nodeData as SingleNodeData))}>
+    <div className="container" ref={containerRef}>
+      <div className="toolbar">
+        <Button
+          type="primary"
+          onClick={onSave && (() => onSave(nodeData as SingleNodeData))}
+        >
           保存
         </Button>
+      </div>
+      <editorContext.Provider value={{ nodeData, dispatch, onNodeDoubleClick }}>
         <div
           className="editor"
           style={{
             transform: `scale(${scaleRate / 100})`,
-            position: dragable ? 'absolute' : 'static',
-            top: topPos + 'px',
+            position: dragable ? 'absolute' : 'relative',
           }}
           ref={editorRef}
         >
           <SingleNode {...(nodeData as SingleNodeProps)}></SingleNode>
         </div>
-      </div>
-    </editorContext.Provider>
+      </editorContext.Provider>
+      {scalable && (
+        <Slider
+          className="scale-controller"
+          value={scaleRate}
+          min={MIN_SCALE_RATE}
+          max={MAX_SCALE_RATE}
+          vertical
+          tipFormatter={(value?: number) => `${value}%`}
+          onChange={(value: React.SetStateAction<number>) => {
+            setScaleRate(value);
+          }}
+        ></Slider>
+      )}
+    </div>
   );
 };
 

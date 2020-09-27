@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { CustomizedNode } from '../Editor';
+import { CustomizedNode, ToolTip } from '../Editor';
 
 export const ADD_START_NODE = 'ADD_START_NODE';
 export const ADD_SINGLE_NODE = 'ADD_SINGLE_NODE';
@@ -157,7 +157,11 @@ export const swapNodes = (sourceNodeId: string, targetNodeId: string) => ({
   },
 });
 
-export const updateNodes = (customizedNodes: Array<CustomizedNode>) => ({
+export const updateNodes = (
+  customizedNodes?: Array<CustomizedNode>,
+  toolTips?: Array<ToolTip>
+) => ({
   type: UPDATE_NODES,
   customizedNodes,
+  toolTips,
 });

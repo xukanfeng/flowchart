@@ -35,6 +35,13 @@ const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
       (config) => config.action !== 'add-branch-node'
     );
   }
+  if (folded) {
+    menuConfig = menuConfig.filter((config) => config.action !== 'fold-nodes');
+  } else {
+    menuConfig = menuConfig.filter(
+      (config) => config.action !== 'unfold-nodes'
+    );
+  }
 
   const menu = useNodeMenu(id, menuConfig);
 

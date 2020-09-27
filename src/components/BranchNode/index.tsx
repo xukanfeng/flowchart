@@ -16,7 +16,17 @@ const MENU_CONFIG = [
 
 const BranchNode: React.FC<BranchNodeProps> = (props) => {
   const { id, folded, subNodes } = props;
-  const menu = useNodeMenu(id, MENU_CONFIG);
+
+  let menuConfig = [...MENU_CONFIG];
+  if (folded) {
+    menuConfig = menuConfig.filter((config) => config.action !== 'fold-nodes');
+  } else {
+    menuConfig = menuConfig.filter(
+      (config) => config.action !== 'unfold-nodes'
+    );
+  }
+
+  const menu = useNodeMenu(id, menuConfig);
 
   return (
     <div className="branch-node-wrapper">

@@ -8,7 +8,13 @@ import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Editor data={data} customizedNodes={[{id: "10", shape: (<div style={{height: '50px', width: '200px', background: 'yellow'}}>aaa</div>)}]} onNodeDoubleClick={id => console.log(id)} onSave={data => console.log(data)}/>
+    <div style={{ width: '1000px', height: '600px', marginLeft: '200px' }}>
+      <Editor
+        data={data}
+        onNodeDoubleClick={(id) => console.log(id)}
+        onSave={(data) => console.log(data)}
+      />
+    </div>
   </React.StrictMode>,
   document.getElementById('root')
 );

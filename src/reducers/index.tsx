@@ -186,11 +186,17 @@ const reducer = (nodeData = {}, action: any) => {
       return { ...nodeData };
     }
     case UPDATE_NODES: {
-      const { customizedNodes } = action;
+      const { customizedNodes = [], toolTips = [] } = action;
       for (let item of customizedNodes) {
         const node = findNodeById(nodeData as NodeData, item.id);
         if (node) {
           node.customShape = item.shape;
+        }
+      }
+      for (let item of toolTips) {
+        const node = findNodeById(nodeData as NodeData, item.id);
+        if (node) {
+          node.toolTip = { ...item };
         }
       }
 
