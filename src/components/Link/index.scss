@@ -1,14 +1,5 @@
 .link {
-  width: 2px;
-  min-height: 50px;
-  display: -webkit-inline-box;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -ms-flex-negative: 0;
-  flex-shrink: 0;
-  // flex-grow: 1;
-  -webkit-box-flex: 1;
-  -ms-flex-positive: 1;
-  // position: relative;
-  background-color: #ccc;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }

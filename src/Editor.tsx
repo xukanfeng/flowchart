@@ -11,12 +11,18 @@ import { reducer, editorContext } from './reducers';
 import { addStartNode, updateNodes } from './actions';
 import './Editor.scss';
 
+export interface NodeStyle {
+  shape?: string;
+  size?: string;
+}
+
 export interface NodeBaseProps {
   id: string;
   name?: string;
   type: string;
   visible: boolean;
   deletable: boolean;
+  style?: NodeStyle;
   customShape?: JSX.Element;
   toolTip?: ToolTip;
 }

@@ -1,49 +1,43 @@
 import React from 'react';
 import { Dropdown } from 'antd';
 import Link from '../Link';
-import useNodeMenu from '../../hooks/useNodeMenu';
+import useNodeMenu, { MENU } from '../../hooks/useNodeMenu';
 import renderChildNode from '../../utils/renderChildNode';
 import { ConditionNodeProps } from '../../Editor';
 import '../style.scss';
 import './index.scss';
 
-const MENU_CONFIG = [
-  { action: 'add-branch-sub-node', desc: '新增分支' },
-  { action: 'add-single-node', desc: '新增子节点' },
-  { action: 'add-branch-node', desc: '新增分支节点' },
-  { action: 'add-condition-node', desc: '新增条件节点' },
-  { action: 'delete-node', desc: '删除当前节点' },
-  { action: 'delete-children', desc: '删除子节点' },
-  { action: 'delete-node-and-children', desc: '删除当前节点及子节点' },
-  { action: 'fold-nodes', desc: '收起节点' },
-  { action: 'unfold-nodes', desc: '展开节点' },
+const MENU_ITEMS = [
+  MENU.ADD_BRANCH_SUB_NODE,
+  MENU.ADD_SINGLE_NODE,
+  MENU.ADD_BRANCH_NODE,
+  MENU.ADD_CONDITION_NODE,
+  MENU.DELETE_NODE,
+  MENU.DELETE_CHILDREN,
+  MENU.DELETE_NODE_AND_CHILDREN,
+  MENU.FOLD_NODES,
+  MENU.UNFOLD_NODES,
 ];
 
 const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
   const { id, folded, subNodes, child } = props;
 
-  let menuConfig = [...MENU_CONFIG];
+  let menuItems = [...MENU_ITEMS];
   if (!child) {
-    menuConfig = menuConfig.filter(
-      (config) =>
-        config.action !== 'delete-children' &&
-        config.action !== 'delete-node-and-children'
+    menuItems = menuItems.filter(
+      (item) =>
+        item !== MENU.DELETE_CHILDREN && item !== MENU.DELETE_NODE_AND_CHILDREN
     );
   }
   if (child || child === null) {
-    menuConfig = menuConfig.filter(
-      (config) => config.action !== 'add-branch-node'
-    );
+    menuItems = menuItems.filter((item) => item !== MENU.ADD_BRANCH_NODE);
   }
   if (folded) {
-    menuConfig = menuConfig.filter((config) => config.action !== 'fold-nodes');
+    menuItems = menuItems.filter((item) => item !== MENU.FOLD_NODES);
   } else {
-    menuConfig = menuConfig.filter(
-      (config) => config.action !== 'unfold-nodes'
-    );
+    menuItems = menuItems.filter((item) => item !== MENU.UNFOLD_NODES);
   }
-
-  const menu = useNodeMenu(id, menuConfig);
+  const menu = useNodeMenu(id, menuItems);
 
   return (
     <div className="condition-node-wrapper">
@@ -66,12 +60,18 @@ const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
                   <div className="bottom-right-cover-line"></div>
                 </>
               )}
+              <Link></Link>
               <div className="sub-node">{renderChildNode(subNode)}</div>
+              <Link arrow={false}></Link>
             </div>
           ))}
       </div>
-      <Link></Link>
-      {child && renderChildNode(child)}
+      {child && (
+        <>
+          <Link></Link>
+          {renderChildNode(child)}
+        </>
+      )}
     </div>
   );
 };

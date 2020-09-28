@@ -1,38 +1,35 @@
 import React from 'react';
 import { Dropdown } from 'antd';
 import Link from '../Link';
-import useNodeMenu from '../../hooks/useNodeMenu';
+import useNodeMenu, { MENU } from '../../hooks/useNodeMenu';
 import renderChildNode from '../../utils/renderChildNode';
 import { BranchNodeProps } from '../../Editor';
 import '../style.scss';
 import './index.scss';
 
-const MENU_CONFIG = [
-  { action: 'add-branch-sub-node', desc: '新增分支' },
-  { action: 'delete-node', desc: '删除当前节点' },
-  { action: 'fold-nodes', desc: '收起节点' },
-  { action: 'unfold-nodes', desc: '展开节点' },
+const MENU_ITEMS = [
+  MENU.ADD_BRANCH_SUB_NODE,
+  MENU.DELETE_NODE,
+  MENU.FOLD_NODES,
+  MENU.UNFOLD_NODES,
 ];
 
 const BranchNode: React.FC<BranchNodeProps> = (props) => {
   const { id, folded, subNodes } = props;
 
-  let menuConfig = [...MENU_CONFIG];
+  let menuItems = [...MENU_ITEMS];
   if (folded) {
-    menuConfig = menuConfig.filter((config) => config.action !== 'fold-nodes');
+    menuItems = menuItems.filter((item) => item !== MENU.FOLD_NODES);
   } else {
-    menuConfig = menuConfig.filter(
-      (config) => config.action !== 'unfold-nodes'
-    );
+    menuItems = menuItems.filter((item) => item !== MENU.UNFOLD_NODES);
   }
-
-  const menu = useNodeMenu(id, menuConfig);
+  const menu = useNodeMenu(id, menuItems);
 
   return (
     <div className="branch-node-wrapper">
       <div className="branch-node">
         <Dropdown overlay={menu} trigger={['contextMenu']}>
-          <button className="operation">分支节点</button>
+          <button className="operation oval">分支节点</button>
         </Dropdown>
         {!folded &&
           subNodes.map((subNode, index) => (
