@@ -1,10 +1,15 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Tooltip, Dropdown } from 'antd';
+import useContextMenu, { MENU } from '../ContextMenu';
 import Link from '../Link';
 import { useDrag, useDrop } from 'ahooks';
-import useNodeMenu, { MENU } from '../../hooks/useNodeMenu';
 import renderChildNode from '../../utils/renderChildNode';
-import { editorContext } from '../../reducers';
+import { findNodeById } from '../../utils/findNode';
+import {
+  nodeDataContext,
+  nodeDataDispatchContext,
+  editorEventContext,
+} from '../../context';
 import { swapNodes } from '../../actions';
 import { SingleNodeProps } from '../../Editor';
 import '../style.scss';
@@ -20,7 +25,16 @@ const MENU_ITEMS = [
 ];
 
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
-  const { id, child, deletable, customShape, toolTip } = props;
+  const { id } = props;
+  const { nodeData } = useContext(nodeDataContext);
+  const curNodeData = findNodeById(nodeData, id);
+  const {
+    timestamp,
+    child,
+    deletable,
+    customShape,
+    toolTip,
+  } = curNodeData as SingleNodeProps;
 
   let menuItems = [...MENU_ITEMS];
   if (!child) {
@@ -40,9 +54,11 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
   if (!deletable && !child) {
     menuItems = menuItems.filter((item) => item !== MENU.DELETE_NODE);
   }
-  const menu = useNodeMenu(id, menuItems);
+  const menu = useContextMenu(id, menuItems);
 
-  const { dispatch, onNodeDoubleClick } = useContext(editorContext);
+  const { onNodeDoubleClick } = useContext(editorEventContext);
+
+  const dispatch = useContext(nodeDataDispatchContext);
   const getDragProps = useDrag();
   const [sourceNodeId] = useDrop({
     onDom: (sourceNodeId: string) => {
@@ -50,26 +66,30 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
     },
   });
 
-  return (
-    <div className="single-node-wrapper">
-      <Tooltip title={!toolTip ? '' : toolTip!.title}>
-        <Dropdown overlay={menu} trigger={['contextMenu']}>
-          <div
-            onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}
-            {...getDragProps(id)}
-            {...sourceNodeId}
-          >
-            {customShape ? (
-              <div>{customShape}</div>
-            ) : (
-              <div className="node rect">{id}</div>
-            )}
-          </div>
-        </Dropdown>
-      </Tooltip>
-      {child && <Link></Link>}
-      {child && renderChildNode(child)}
-    </div>
+  return useMemo(
+    () => (
+      <div className="single-node-wrapper">
+        <Tooltip title={!toolTip ? '' : toolTip.title}>
+          <Dropdown overlay={menu} trigger={['contextMenu']}>
+            <div
+              onDoubleClick={onNodeDoubleClick && (() => onNodeDoubleClick(id))}
+              {...getDragProps(id)}
+              {...sourceNodeId}
+            >
+              {customShape ? (
+                <div>{customShape}</div>
+              ) : (
+                <div className="node rect">{id}</div>
+              )}
+            </div>
+          </Dropdown>
+        </Tooltip>
+        {child && <Link></Link>}
+        {child && renderChildNode(child)}
+      </div>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [timestamp]
   );
 };
 

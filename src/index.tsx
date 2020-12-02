@@ -8,7 +8,7 @@ import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <div style={{ width: '1000px', height: '600px', marginLeft: '200px' }}>
+    <div style={{ width: '1000px', height: '600px' }}>
       <Editor
         data={data}
         onNodeDoubleClick={(id) => console.log(id)}

@@ -28,6 +28,10 @@
     position: relative;
     margin-top: 15px;
 
+    &.folded {
+      min-height: 15px;
+    }
+
     .sub-node-wrapper {
       background: #f5f5f7;
       display: inline-flex;

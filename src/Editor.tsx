@@ -3,12 +3,17 @@ import React, {
   useReducer,
   useRef,
   useEffect,
+  useMemo,
   ReactNode,
 } from 'react';
-import { Button, Slider } from 'antd';
+import { Slider } from 'antd';
+import Toolbar from './components/Toolbar';
+import EditorProvider from './components/EditorContextProvider';
+import NodeDataProvider from './components/NodeDataProvider';
 import SingleNode from './components/SingleNode';
-import { reducer, editorContext } from './reducers';
+import { reducer } from './reducers';
 import { addStartNode, updateNodes } from './actions';
+import { useThrottleFn, usePersistFn } from 'ahooks';
 import './Editor.scss';
 
 export interface NodeStyle {
@@ -20,6 +25,7 @@ export interface NodeBaseProps {
   id: string;
   name?: string;
   type: string;
+  timestamp?: string;
   visible: boolean;
   deletable: boolean;
   style?: NodeStyle;
@@ -85,6 +91,7 @@ const Editor: React.FC<EditorProps> = (props) => {
     data,
     customizedNodes,
     toolTips,
+    contextMenuDisabled = false,
     onNodeDoubleClick,
     onSave,
     dragable = true,
@@ -115,15 +122,14 @@ const Editor: React.FC<EditorProps> = (props) => {
   };
 
   const scroll = (event: any) => {
-    // TODO: debouce
     const wheel = event.wheelDelta || event.detail;
-    console.log('scroll');
     wheel < 0
       ? setScaleRate((prev) => (prev <= MIN_SCALE_RATE ? prev : prev - 5))
       : setScaleRate((prev) => (prev >= MAX_SCALE_RATE ? prev : prev + 5));
 
     event.preventDefault();
   };
+  const { run: throttledScroll } = useThrottleFn(scroll, { wait: 100 });
 
   const initEditorPos = () => {
     const containerEl = containerRef!.current!;
@@ -140,10 +146,10 @@ const Editor: React.FC<EditorProps> = (props) => {
 
     initEditorPos();
     dragable && (containerEl.onmousedown = (event) => move(event));
-    scalable && containerEl.addEventListener('mousewheel', scroll);
+    scalable && containerEl.addEventListener('mousewheel', throttledScroll);
 
     return () => {
-      containerEl.removeEventListener('mousewheel', scroll);
+      containerEl.removeEventListener('mousewheel', throttledScroll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -154,41 +160,43 @@ const Editor: React.FC<EditorProps> = (props) => {
       dispatch(updateNodes(customizedNodes, toolTips));
   }, [data, customizedNodes, toolTips]);
 
+  const save = usePersistFn(() => onSave && onSave(nodeData));
+
+  const ScaleController = useMemo(
+    () => (
+      <Slider
+        className="scale-controller"
+        value={scaleRate}
+        min={MIN_SCALE_RATE}
+        max={MAX_SCALE_RATE}
+        vertical
+        tipFormatter={(value?: number) => `${value}%`}
+        onChange={(value: React.SetStateAction<number>) => {
+          setScaleRate(value);
+        }}
+      ></Slider>
+    ),
+    [scaleRate]
+  );
+
   return (
     <div className="container" ref={containerRef}>
-      <div className="toolbar">
-        <Button
-          type="primary"
-          onClick={onSave && (() => onSave(nodeData as SingleNodeData))}
-        >
-          保存
-        </Button>
-      </div>
-      <editorContext.Provider value={{ nodeData, dispatch, onNodeDoubleClick }}>
-        <div
-          className="editor"
-          style={{
-            transform: `scale(${scaleRate / 100})`,
-            position: dragable ? 'absolute' : 'relative',
-          }}
-          ref={editorRef}
-        >
-          <SingleNode {...(nodeData as SingleNodeProps)}></SingleNode>
-        </div>
-      </editorContext.Provider>
-      {scalable && (
-        <Slider
-          className="scale-controller"
-          value={scaleRate}
-          min={MIN_SCALE_RATE}
-          max={MAX_SCALE_RATE}
-          vertical
-          tipFormatter={(value?: number) => `${value}%`}
-          onChange={(value: React.SetStateAction<number>) => {
-            setScaleRate(value);
-          }}
-        ></Slider>
-      )}
+      <Toolbar save={save}></Toolbar>
+      <EditorProvider {...{ onNodeDoubleClick, contextMenuDisabled }}>
+        <NodeDataProvider {...{ nodeData, dispatch }}>
+          <div
+            className="editor"
+            style={{
+              transform: `scale(${scaleRate / 100})`,
+              position: dragable ? 'absolute' : 'relative',
+            }}
+            ref={editorRef}
+          >
+            <SingleNode {...(nodeData as SingleNodeProps)}></SingleNode>
+          </div>
+        </NodeDataProvider>
+      </EditorProvider>
+      {scalable && ScaleController}
     </div>
   );
 };

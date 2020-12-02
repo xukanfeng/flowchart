@@ -1,4 +1,3 @@
-import React, { createContext } from 'react';
 import {
   ADD_START_NODE,
   ADD_SINGLE_NODE,
@@ -43,6 +42,7 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
         node.child = null;
       }
       curNodeData.child = node;
+      curNodeData.timestamp = new Date().toString();
       return { ...nodeData };
     }
     case ADD_BRANCH_SUB_NODE:
@@ -52,6 +52,7 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
       curNodeData.subNodes.forEach((subNode) => {
         subNode.deletable = true;
       });
+      curNodeData.timestamp = new Date().toString();
       return { ...nodeData };
     }
     case DELETE_NODE:
@@ -93,12 +94,14 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
             subNode.deletable = false;
           });
         }
+        branchOrConditionNodeData.timestamp = new Date().toString();
       } else {
         const curNodeData = curNode as SingleNodeData | ConditionNodeData;
         const parentNodeData = parentNode as SingleNodeData | ConditionNodeData;
         if (action.type === DELETE_NODE && curNodeData.child) {
           parentNodeData.child = curNodeData.child;
         } else parentNodeData.child = undefined;
+        parentNodeData.timestamp = new Date().toString();
       }
 
       return { ...nodeData };
@@ -112,6 +115,7 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
       if (lastChild === null) curNodeData.child = null;
       else curNodeData.child = undefined;
 
+      curNodeData.timestamp = new Date().toString();
       return { ...nodeData };
     }
     case FOLD_NODES:
@@ -121,6 +125,8 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
       for (let subNode of curNodeData.subNodes) {
         subNode.visible = action.type === FOLD_NODES ? false : true;
       }
+
+      curNodeData.timestamp = new Date().toString();
       return { ...nodeData };
     }
     default:
@@ -207,11 +213,4 @@ const reducer = (nodeData = {}, action: any) => {
   }
 };
 
-const initialState: {
-  nodeData: any;
-  dispatch: React.Dispatch<any>;
-  onNodeDoubleClick?: (id: string) => any;
-} = { nodeData: {}, dispatch: () => {}, onNodeDoubleClick: () => {} };
-const editorContext = createContext(initialState);
-
-export { reducer, editorContext };
+export { reducer };

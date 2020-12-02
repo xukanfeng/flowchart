@@ -24,6 +24,7 @@ export const addStartNode = () => ({
     node: {
       id: uuid(),
       type: 'single-node',
+      timestamp: new Date().toString(),
       visible: true,
       deletable: false,
     },
@@ -34,7 +35,13 @@ export const addSingleNode = (id: string) => ({
   type: ADD_SINGLE_NODE,
   payload: {
     id,
-    node: { id: uuid(), type: 'single-node', visible: true, deletable: true },
+    node: {
+      id: uuid(),
+      type: 'single-node',
+      timestamp: new Date().toString(),
+      visible: true,
+      deletable: true,
+    },
   },
 });
 
@@ -45,12 +52,14 @@ export const addBranchNode = (id: string) => ({
     node: {
       id: uuid(),
       type: 'branch-node',
+      timestamp: new Date().toString(),
       visible: true,
       deletable: true,
       subNodes: [
         {
           id: uuid(),
           type: 'single-node',
+          timestamp: new Date().toString(),
           visible: true,
           deletable: false,
           child: null,
@@ -58,6 +67,7 @@ export const addBranchNode = (id: string) => ({
         {
           id: uuid(),
           type: 'single-node',
+          timestamp: new Date().toString(),
           visible: true,
           deletable: false,
           child: null,
@@ -74,6 +84,7 @@ export const addBranchSubNode = (id: string) => ({
     node: {
       id: uuid(),
       type: 'single-node',
+      timestamp: new Date().toString(),
       visible: true,
       deletable: true,
       child: null,
@@ -88,12 +99,14 @@ export const addConditionNode = (id: string) => ({
     node: {
       id: uuid(),
       type: 'condition-node',
+      timestamp: new Date().toString(),
       visible: true,
       deletable: true,
       subNodes: [
         {
           id: uuid(),
           type: 'single-node',
+          timestamp: new Date().toString(),
           visible: true,
           deletable: false,
           child: null,
@@ -101,6 +114,7 @@ export const addConditionNode = (id: string) => ({
         {
           id: uuid(),
           type: 'single-node',
+          timestamp: new Date().toString(),
           visible: true,
           deletable: false,
           child: null,
@@ -117,6 +131,7 @@ export const addConditionSubNode = (id: string) => ({
     node: {
       id: uuid(),
       type: 'single-node',
+      timestamp: new Date().toString(),
       visible: true,
       deletable: true,
       child: null,

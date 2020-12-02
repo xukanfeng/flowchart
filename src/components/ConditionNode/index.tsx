@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Dropdown } from 'antd';
+import useContextMenu, { MENU } from '../ContextMenu';
 import Link from '../Link';
-import useNodeMenu, { MENU } from '../../hooks/useNodeMenu';
 import renderChildNode from '../../utils/renderChildNode';
+import { findNodeById } from '../../utils/findNode';
+import { nodeDataContext } from '../../context';
 import { ConditionNodeProps } from '../../Editor';
+import classNames from 'classnames';
 import '../style.scss';
 import './index.scss';
 
 const MENU_ITEMS = [
-  MENU.ADD_BRANCH_SUB_NODE,
+  MENU.ADD_CONDITION_SUB_NODE,
   MENU.ADD_SINGLE_NODE,
   MENU.ADD_BRANCH_NODE,
   MENU.ADD_CONDITION_NODE,
@@ -20,7 +23,15 @@ const MENU_ITEMS = [
 ];
 
 const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
-  const { id, folded, subNodes, child } = props;
+  const { id } = props;
+  const { nodeData } = useContext(nodeDataContext);
+  const curNodeData = findNodeById(nodeData, id);
+  const {
+    timestamp,
+    folded,
+    subNodes,
+    child,
+  } = curNodeData as ConditionNodeProps;
 
   let menuItems = [...MENU_ITEMS];
   if (!child) {
@@ -37,42 +48,46 @@ const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
   } else {
     menuItems = menuItems.filter((item) => item !== MENU.UNFOLD_NODES);
   }
-  const menu = useNodeMenu(id, menuItems);
+  const menu = useContextMenu(id, menuItems);
 
-  return (
-    <div className="condition-node-wrapper">
-      <div className="condition-node">
-        <Dropdown overlay={menu} trigger={['contextMenu']}>
-          <button className="operation">条件节点</button>
-        </Dropdown>
-        {!folded &&
-          subNodes.map((subNode, index) => (
-            <div className="sub-node-wrapper" key={subNode.id}>
-              {index === 0 && (
-                <>
-                  <div className="top-left-cover-line"></div>
-                  <div className="bottom-left-cover-line"></div>
-                </>
-              )}
-              {index === subNodes.length - 1 && (
-                <>
-                  <div className="top-right-cover-line"></div>
-                  <div className="bottom-right-cover-line"></div>
-                </>
-              )}
-              <Link></Link>
-              <div className="sub-node">{renderChildNode(subNode)}</div>
-              <Link arrow={false}></Link>
-            </div>
-          ))}
+  return useMemo(
+    () => (
+      <div className="condition-node-wrapper">
+        <div className={classNames('condition-node', { folded: folded })}>
+          <Dropdown overlay={menu} trigger={['contextMenu']}>
+            <button className="operation">条件节点</button>
+          </Dropdown>
+          {!folded &&
+            subNodes.map((subNode, index) => (
+              <div className="sub-node-wrapper" key={subNode.id}>
+                {index === 0 && (
+                  <>
+                    <div className="top-left-cover-line"></div>
+                    <div className="bottom-left-cover-line"></div>
+                  </>
+                )}
+                {index === subNodes.length - 1 && (
+                  <>
+                    <div className="top-right-cover-line"></div>
+                    <div className="bottom-right-cover-line"></div>
+                  </>
+                )}
+                <Link></Link>
+                <div className="sub-node">{renderChildNode(subNode)}</div>
+                <Link arrow={false}></Link>
+              </div>
+            ))}
+        </div>
+        {child && (
+          <>
+            <Link></Link>
+            {renderChildNode(child)}
+          </>
+        )}
       </div>
-      {child && (
-        <>
-          <Link></Link>
-          {renderChildNode(child)}
-        </>
-      )}
-    </div>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [timestamp]
   );
 };
 
