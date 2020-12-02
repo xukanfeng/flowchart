@@ -189,6 +189,7 @@ const reducer = (nodeData = {}, action: any) => {
         )[0]
       );
 
+      branchOrConditionNodeData.timestamp = new Date().toString();
       return { ...nodeData };
     }
     case UPDATE_NODES: {
