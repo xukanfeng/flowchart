@@ -12,7 +12,7 @@ import EditorProvider from './components/EditorContextProvider';
 import NodeDataProvider from './components/NodeDataProvider';
 import SingleNode from './components/SingleNode';
 import { reducer } from './reducers';
-import { addStartNode, updateNodes } from './actions';
+import { initNodeDataMap, addStartNode, updateNodes } from './actions';
 import { useThrottleFn, usePersistFn } from 'ahooks';
 import './Editor.scss';
 
@@ -86,7 +86,6 @@ const MIN_SCALE_RATE = 20;
 const MAX_SCALE_RATE = 200;
 
 const Editor: React.FC<EditorProps> = (props) => {
-  console.log(props);
   const {
     data,
     customizedNodes,
@@ -97,7 +96,10 @@ const Editor: React.FC<EditorProps> = (props) => {
     dragable = true,
     scalable = true,
   } = props;
-  const [nodeData, dispatch] = useReducer(reducer, data || {});
+  const [{ nodeData, nodeDataMap }, dispatch] = useReducer(reducer, {
+    nodeData: data,
+    nodeDataMap: new Map(),
+  });
   const [scaleRate, setScaleRate] = useState(DEFAULT_SCALE_RATE);
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -160,6 +162,11 @@ const Editor: React.FC<EditorProps> = (props) => {
       dispatch(updateNodes(customizedNodes, toolTips));
   }, [data, customizedNodes, toolTips]);
 
+  useEffect(() => {
+    dispatch(initNodeDataMap(nodeData));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const save = usePersistFn(() => onSave && onSave(nodeData));
 
   const ScaleController = useMemo(
@@ -183,7 +190,7 @@ const Editor: React.FC<EditorProps> = (props) => {
     <div className="container" ref={containerRef}>
       <Toolbar save={save}></Toolbar>
       <EditorProvider {...{ onNodeDoubleClick, contextMenuDisabled }}>
-        <NodeDataProvider {...{ nodeData, dispatch }}>
+        <NodeDataProvider {...{ nodeData, nodeDataMap, dispatch }}>
           <div
             className="editor"
             style={{

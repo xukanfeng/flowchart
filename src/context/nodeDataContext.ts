@@ -1,10 +1,4 @@
 import { createContext } from 'react';
-import { SingleNodeProps } from '../Editor';
+import { initialNodeDataState } from '../reducers';
 
-const initialNodeDataContext: {
-  nodeData: SingleNodeProps;
-} = {
-  nodeData: {} as SingleNodeProps,
-};
-
-export default createContext(initialNodeDataContext);
+export default createContext(initialNodeDataState);

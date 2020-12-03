@@ -4,7 +4,6 @@ import useContextMenu, { MENU } from '../ContextMenu';
 import Link from '../Link';
 import { useDrag, useDrop } from 'ahooks';
 import renderChildNode from '../../utils/renderChildNode';
-import { findNodeById } from '../../utils/findNode';
 import {
   nodeDataContext,
   nodeDataDispatchContext,
@@ -26,8 +25,8 @@ const MENU_ITEMS = [
 
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
   const { id } = props;
-  const { nodeData } = useContext(nodeDataContext);
-  const curNodeData = findNodeById(nodeData, id);
+  const { nodeDataMap } = useContext(nodeDataContext);
+  const curNodeData = nodeDataMap.get(id) || props; // the map maybe empty when the editor rendered for the first time
   const {
     timestamp,
     child,

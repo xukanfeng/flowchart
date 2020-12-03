@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
-import { CustomizedNode, ToolTip } from '../Editor';
+import { CustomizedNode, ToolTip, SingleNodeData } from '../Editor';
 
+export const INIT_NODE_DATA_MAP = 'INIT_NODE_DATA_MAP';
 export const ADD_START_NODE = 'ADD_START_NODE';
 export const ADD_SINGLE_NODE = 'ADD_SINGLE_NODE';
 export const ADD_BRANCH_NODE = 'ADD_BRANCH_NODE';
@@ -17,6 +18,13 @@ export const UPDATE_NODES = 'UPDATE_NODES';
 
 export const UNDO = 'UNDO';
 export const REDO = 'REDO';
+
+export const initNodeDataMap = (startNode: SingleNodeData) => ({
+  type: INIT_NODE_DATA_MAP,
+  payload: {
+    node: startNode,
+  },
+});
 
 export const addStartNode = () => ({
   type: ADD_START_NODE,

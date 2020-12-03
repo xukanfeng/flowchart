@@ -1,4 +1,5 @@
 import {
+  INIT_NODE_DATA_MAP,
   ADD_START_NODE,
   ADD_SINGLE_NODE,
   ADD_BRANCH_NODE,
@@ -18,6 +19,7 @@ import {
   findParentNode,
   findBranchOrConditionNode,
 } from '../utils/findNode';
+import updateNodeDataMap from '../utils/updateNodeDataMap';
 import {
   NodeData,
   SingleNodeData,
@@ -25,10 +27,21 @@ import {
   ConditionNodeData,
 } from '../Editor';
 
-const handleNodeOperation = (nodeData = {}, action: any) => {
+export interface NodeDataState {
+  nodeData: SingleNodeData;
+  nodeDataMap: Map<string, NodeData>;
+}
+
+export const initialNodeDataState = {
+  nodeData: {} as SingleNodeData,
+  nodeDataMap: new Map(),
+};
+
+const handleNodeOperation = (state: NodeDataState, action: any) => {
+  const { nodeData, nodeDataMap } = state;
   const { id, node } = action.payload;
   let curNode = findNodeById(nodeData as NodeData, id);
-  if (!curNode) return nodeData;
+  if (!curNode) return state;
 
   switch (action.type) {
     case ADD_SINGLE_NODE:
@@ -43,7 +56,8 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
       }
       curNodeData.child = node;
       curNodeData.timestamp = new Date().toString();
-      return { ...nodeData };
+      updateNodeDataMap(node, nodeDataMap);
+      return { ...state };
     }
     case ADD_BRANCH_SUB_NODE:
     case ADD_CONDITION_SUB_NODE: {
@@ -53,7 +67,8 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
         subNode.deletable = true;
       });
       curNodeData.timestamp = new Date().toString();
-      return { ...nodeData };
+      updateNodeDataMap(node, nodeDataMap);
+      return { ...state };
     }
     case DELETE_NODE:
     case DELETE_NODE_AND_CHILDREN: {
@@ -64,7 +79,7 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
           nodeData as NodeData,
           id
         );
-        if (!branchOrConditionNode) return nodeData;
+        if (!branchOrConditionNode) return state;
         const branchOrConditionNodeData = branchOrConditionNode as
           | BranchNodeData
           | ConditionNodeData;
@@ -77,9 +92,11 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
                 1,
                 subNodeData.child
               );
+              subNodeData.child = null;
             } else {
               branchOrConditionNodeData.subNodes.splice(index, 1);
             }
+            updateNodeDataMap(subNodeData, nodeDataMap, false);
             return true;
           }
           return false;
@@ -100,15 +117,18 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
         const parentNodeData = parentNode as SingleNodeData | ConditionNodeData;
         if (action.type === DELETE_NODE && curNodeData.child) {
           parentNodeData.child = curNodeData.child;
+          curNodeData.child = null;
         } else parentNodeData.child = undefined;
+        updateNodeDataMap(curNodeData, nodeDataMap, false);
         parentNodeData.timestamp = new Date().toString();
       }
 
-      return { ...nodeData };
+      return { ...state };
     }
     case DELETE_CHILDREN: {
       const curNodeData = curNode as SingleNodeData | ConditionNodeData;
       let lastChild = curNodeData.child;
+      updateNodeDataMap(lastChild, nodeDataMap, false);
       while (lastChild) {
         lastChild = (lastChild as SingleNodeData | ConditionNodeData).child;
       }
@@ -116,7 +136,7 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
       else curNodeData.child = undefined;
 
       curNodeData.timestamp = new Date().toString();
-      return { ...nodeData };
+      return { ...state };
     }
     case FOLD_NODES:
     case UNFOLD_NODES: {
@@ -127,22 +147,28 @@ const handleNodeOperation = (nodeData = {}, action: any) => {
       }
 
       curNodeData.timestamp = new Date().toString();
-      return { ...nodeData };
+      return { ...state };
     }
     default:
-      return nodeData;
+      return state;
   }
 };
 
-const reducer = (nodeData = {}, action: any) => {
-  console.log('reducer', action.type, nodeData);
+const reducer = (state: NodeDataState, action: any) => {
+  console.log('reducer', action.type, state);
+  const { nodeData, nodeDataMap } = state;
   switch (action.type) {
+    case INIT_NODE_DATA_MAP: {
+      updateNodeDataMap(nodeData, nodeDataMap);
+      return { ...state };
+    }
     case ADD_START_NODE: {
-      return { ...action.payload.node };
+      updateNodeDataMap(action.payload.node, nodeDataMap);
+      return { ...state, nodeData: action.payload.node };
     }
     case SWAP_NODES: {
       const { sourceNodeId, targetNodeId } = action.payload;
-      if (sourceNodeId === targetNodeId) return nodeData;
+      if (sourceNodeId === targetNodeId) return state;
 
       const branchOrConditionNodeOfSourceNode = findBranchOrConditionNode(
         nodeData as NodeData,
@@ -157,7 +183,7 @@ const reducer = (nodeData = {}, action: any) => {
         !branchOrConditionNodeOfTargetNode ||
         branchOrConditionNodeOfSourceNode !== branchOrConditionNodeOfTargetNode
       )
-        return nodeData;
+        return state;
 
       const branchOrConditionNodeData = branchOrConditionNodeOfSourceNode as
         | BranchNodeData
@@ -190,7 +216,7 @@ const reducer = (nodeData = {}, action: any) => {
       );
 
       branchOrConditionNodeData.timestamp = new Date().toString();
-      return { ...nodeData };
+      return { ...state };
     }
     case UPDATE_NODES: {
       const { customizedNodes = [], toolTips = [] } = action;
@@ -207,10 +233,10 @@ const reducer = (nodeData = {}, action: any) => {
         }
       }
 
-      return { ...nodeData };
+      return { ...state };
     }
     default:
-      return handleNodeOperation(nodeData, action);
+      return handleNodeOperation(state, action);
   }
 };
 

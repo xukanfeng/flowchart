@@ -3,7 +3,6 @@ import { Dropdown } from 'antd';
 import useContextMenu, { MENU } from '../ContextMenu';
 import Link from '../Link';
 import renderChildNode from '../../utils/renderChildNode';
-import { findNodeById } from '../../utils/findNode';
 import { nodeDataContext } from '../../context';
 import { ConditionNodeProps } from '../../Editor';
 import classNames from 'classnames';
@@ -24,8 +23,8 @@ const MENU_ITEMS = [
 
 const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
   const { id } = props;
-  const { nodeData } = useContext(nodeDataContext);
-  const curNodeData = findNodeById(nodeData, id);
+  const { nodeDataMap } = useContext(nodeDataContext);
+  const curNodeData = nodeDataMap.get(id) || props;
   const {
     timestamp,
     folded,

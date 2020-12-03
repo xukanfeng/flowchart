@@ -3,7 +3,6 @@ import { Dropdown } from 'antd';
 import useContextMenu, { MENU } from '../ContextMenu';
 import Link from '../Link';
 import renderChildNode from '../../utils/renderChildNode';
-import { findNodeById } from '../../utils/findNode';
 import { nodeDataContext } from '../../context';
 import { BranchNodeProps } from '../../Editor';
 import '../style.scss';
@@ -18,8 +17,8 @@ const MENU_ITEMS = [
 
 const BranchNode: React.FC<BranchNodeProps> = (props) => {
   const { id } = props;
-  const { nodeData } = useContext(nodeDataContext);
-  const curNodeData = findNodeById(nodeData, id);
+  const { nodeDataMap } = useContext(nodeDataContext);
+  const curNodeData = nodeDataMap.get(id) || props;
   const { timestamp, folded, subNodes } = curNodeData as BranchNodeProps;
 
   let menuItems = [...MENU_ITEMS];
