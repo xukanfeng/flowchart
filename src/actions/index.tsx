@@ -32,6 +32,7 @@ export const addStartNode = () => ({
     node: {
       id: uuid(),
       type: 'single-node',
+      isRoot: true,
       timestamp: new Date().toString(),
       visible: true,
       deletable: false,
@@ -70,7 +71,6 @@ export const addBranchNode = (id: string) => ({
           timestamp: new Date().toString(),
           visible: true,
           deletable: false,
-          child: null,
         },
         {
           id: uuid(),
@@ -78,7 +78,6 @@ export const addBranchNode = (id: string) => ({
           timestamp: new Date().toString(),
           visible: true,
           deletable: false,
-          child: null,
         },
       ],
     },
@@ -95,7 +94,6 @@ export const addBranchSubNode = (id: string) => ({
       timestamp: new Date().toString(),
       visible: true,
       deletable: true,
-      child: null,
     },
   },
 });

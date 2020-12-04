@@ -36,6 +36,7 @@ export interface NodeBaseProps {
 export type NodeProps = SingleNodeProps | BranchNodeProps | ConditionNodeProps;
 
 export interface SingleNodeProps extends NodeBaseProps {
+  isRoot: boolean;
   child?: NodeProps | null; // the child of the last single-node of condition in condition-node is null, distinguish from the ones in other situation which are undefined.
 }
 
@@ -106,18 +107,19 @@ const Editor: React.FC<EditorProps> = (props) => {
 
   const move = (event: any) => {
     if (!dragable) return;
-    const containerEl = containerRef!.current!;
-    containerEl.style.cursor = 'move';
 
-    const editorEl = editorRef!.current!;
-    const x = event.clientX - editorEl.offsetLeft;
-    const y = event.clientY - editorEl.offsetTop;
+    const containerEl = containerRef.current;
+    containerEl!.style.cursor = 'move';
+
+    const editorEl = editorRef.current;
+    const x = event.clientX - editorEl!.offsetLeft;
+    const y = event.clientY - editorEl!.offsetTop;
     document.onmousemove = (event) => {
-      editorEl.style.left = event.clientX - x + 'px';
-      editorEl.style.top = event.clientY - y + 'px';
+      editorEl!.style.left = event.clientX - x + 'px';
+      editorEl!.style.top = event.clientY - y + 'px';
     };
     document.onmouseup = (event) => {
-      containerEl.style.cursor = 'default';
+      containerEl!.style.cursor = 'default';
       document.onmousemove = null;
       document.onmouseup = null;
     };
@@ -134,24 +136,24 @@ const Editor: React.FC<EditorProps> = (props) => {
   const { run: throttledScroll } = useThrottleFn(scroll, { wait: 100 });
 
   const initEditorPos = () => {
-    const containerEl = containerRef!.current!;
-    const editorEl = editorRef!.current!;
-    const topPos = (editorEl.offsetHeight * (scaleRate / 100 - 1)) / 2;
+    const containerEl = containerRef.current;
+    const editorEl = editorRef.current;
+    const topPos = (editorEl!.offsetHeight * (scaleRate / 100 - 1)) / 2;
 
-    editorEl.style.left =
-      (containerEl.offsetWidth - editorEl.offsetWidth) / 2 + 'px';
-    editorEl.style.top = topPos + 'px';
+    editorEl!.style.left =
+      (containerEl!.offsetWidth - editorEl!.offsetWidth) / 2 + 'px';
+    editorEl!.style.top = topPos + 'px';
   };
 
   useEffect(() => {
-    const containerEl = containerRef!.current!;
+    const containerEl = containerRef.current;
 
     initEditorPos();
-    dragable && (containerEl.onmousedown = (event) => move(event));
-    scalable && containerEl.addEventListener('mousewheel', throttledScroll);
+    dragable && (containerEl!.onmousedown = (event) => move(event));
+    scalable && containerEl!.addEventListener('mousewheel', throttledScroll);
 
     return () => {
-      containerEl.removeEventListener('mousewheel', throttledScroll);
+      containerEl!.removeEventListener('mousewheel', throttledScroll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -51,7 +51,7 @@ const BranchNode: React.FC<BranchNodeProps> = (props) => {
       </div>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [timestamp]
+    [id, timestamp]
   );
 };
 

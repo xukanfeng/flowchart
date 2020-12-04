@@ -86,7 +86,7 @@ const ConditionNode: React.FC<ConditionNodeProps> = (props) => {
       </div>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [timestamp]
+    [id, timestamp]
   );
 };
 

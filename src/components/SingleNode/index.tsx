@@ -28,6 +28,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
   const { nodeDataMap } = useContext(nodeDataContext);
   const curNodeData = nodeDataMap.get(id) || props; // the map maybe empty when the editor rendered for the first time
   const {
+    isRoot,
     timestamp,
     child,
     deletable,
@@ -50,7 +51,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
       (item) => item !== MENU.DELETE_NODE_AND_CHILDREN
     );
   }
-  if (!deletable && !child) {
+  if ((!deletable && !child) || isRoot) {
     menuItems = menuItems.filter((item) => item !== MENU.DELETE_NODE);
   }
   const menu = useContextMenu(id, menuItems);
@@ -88,7 +89,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
       </div>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [timestamp]
+    [id, timestamp]
   );
 };
 

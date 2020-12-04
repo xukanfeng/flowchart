@@ -14,17 +14,14 @@ import {
   SWAP_NODES,
   UPDATE_NODES,
 } from '../actions';
-import {
-  findNodeById,
-  findParentNode,
-  findBranchOrConditionNode,
-} from '../utils/findNode';
-import updateNodeDataMap from '../utils/updateNodeDataMap';
+import { findParentNode, findBranchOrConditionNode } from '../utils/findNode';
 import {
   NodeData,
   SingleNodeData,
   BranchNodeData,
   ConditionNodeData,
+  CustomizedNode,
+  ToolTip,
 } from '../Editor';
 
 export interface NodeDataState {
@@ -37,116 +34,160 @@ export const initialNodeDataState = {
   nodeDataMap: new Map(),
 };
 
+const updateNodeDataMap: (
+  nodeData: NodeData | undefined | null,
+  nodeDataMap: Map<string, NodeData>,
+  // true to add, false to remove
+  flag?: boolean
+) => void = (nodeData, nodeDataMap, flag = true) => {
+  if (!nodeData) return;
+
+  flag
+    ? nodeDataMap.set(nodeData.id, nodeData)
+    : nodeDataMap.delete(nodeData.id);
+
+  switch (nodeData.type) {
+    case 'single-node':
+      updateNodeDataMap((nodeData as SingleNodeData).child, nodeDataMap, flag);
+      break;
+    case 'branch-node':
+    case 'condition-node': {
+      for (let subNode of (nodeData as BranchNodeData | ConditionNodeData)
+        .subNodes) {
+        updateNodeDataMap(subNode, nodeDataMap, flag);
+      }
+      if (nodeData.type === 'condition-node')
+        updateNodeDataMap(
+          (nodeData as ConditionNodeData).child,
+          nodeDataMap,
+          flag
+        );
+      break;
+    }
+    default:
+      break;
+  }
+};
+
 const handleNodeOperation = (state: NodeDataState, action: any) => {
   const { nodeData, nodeDataMap } = state;
   const { id, node } = action.payload;
-  let curNode = findNodeById(nodeData as NodeData, id);
-  if (!curNode) return state;
+  const curNodeData = nodeDataMap.get(id);
+  if (!curNodeData) return state;
 
   switch (action.type) {
     case ADD_SINGLE_NODE:
     case ADD_BRANCH_NODE:
     case ADD_CONDITION_NODE: {
-      const curNodeData = curNode as SingleNodeData | ConditionNodeData;
-      if (curNodeData.child) {
-        node.child = { ...curNodeData.child };
-      } else if (curNodeData.child === null) {
-        // current node is the last node of a branch in branch-node, the new node will be the last one after been added.
-        node.child = null;
-      }
-      curNodeData.child = node;
-      curNodeData.timestamp = new Date().toString();
-      updateNodeDataMap(node, nodeDataMap);
+      const curNode = curNodeData as SingleNodeData | ConditionNodeData;
+      node.child = curNode.child;
+      curNode.child = node;
+      curNode.timestamp = new Date().toString();
+      updateNodeDataMap(curNode, nodeDataMap);
       return { ...state };
     }
     case ADD_BRANCH_SUB_NODE:
     case ADD_CONDITION_SUB_NODE: {
-      const curNodeData = curNode as BranchNodeData | ConditionNodeData;
-      curNodeData.subNodes.push(node);
-      curNodeData.subNodes.forEach((subNode) => {
-        subNode.deletable = true;
+      const curNode = curNodeData as BranchNodeData | ConditionNodeData;
+      curNode.subNodes.push(node);
+      curNode.subNodes.forEach((item) => {
+        // if there are just two sub-node before adding, the sub-node should be rerendered to update the context menu
+        if (!item.deletable) {
+          item.timestamp = new Date().toString();
+        }
+        item.deletable = true;
       });
-      curNodeData.timestamp = new Date().toString();
-      updateNodeDataMap(node, nodeDataMap);
+      curNode.timestamp = new Date().toString();
+      updateNodeDataMap(curNode, nodeDataMap);
       return { ...state };
     }
     case DELETE_NODE:
     case DELETE_NODE_AND_CHILDREN: {
-      const parentNode = findParentNode(nodeData as NodeData, id);
+      const parentNode = findParentNode(nodeData, id) as
+        | SingleNodeData
+        | ConditionNodeData;
       // the start-node and the direct sub-nodes in branch-node or condition-node don't have parent; the start-node is ignored because it's undeletable.
       if (!parentNode) {
-        let branchOrConditionNode = findBranchOrConditionNode(
-          nodeData as NodeData,
-          id
-        );
+        const branchOrConditionNode = findBranchOrConditionNode(nodeData, id);
         if (!branchOrConditionNode) return state;
-        const branchOrConditionNodeData = branchOrConditionNode as
+        const subNodes = (branchOrConditionNode as
           | BranchNodeData
-          | ConditionNodeData;
-        branchOrConditionNodeData.subNodes.some((subNode, index) => {
-          if (subNode.id === id) {
-            const subNodeData = subNode as SingleNodeData | ConditionNodeData;
-            if (action.type === DELETE_NODE && subNodeData.child) {
-              branchOrConditionNodeData.subNodes.splice(
-                index,
-                1,
-                subNodeData.child
+          | ConditionNodeData).subNodes;
+        subNodes.some((item, index) => {
+          if (item.id === id) {
+            const subNode = item as SingleNodeData | ConditionNodeData;
+            if (action.type === DELETE_NODE) {
+              if (subNode.child) subNodes.splice(index, 1, subNode.child);
+              else subNodes.splice(index, 1);
+              updateNodeDataMap(
+                { ...subNode, child: null },
+                nodeDataMap,
+                false
               );
-              subNodeData.child = null;
             } else {
-              branchOrConditionNodeData.subNodes.splice(index, 1);
+              subNodes.splice(index, 1);
+              updateNodeDataMap(subNode, nodeDataMap, false);
             }
-            updateNodeDataMap(subNodeData, nodeDataMap, false);
             return true;
           }
           return false;
         });
         // branches or conditions can only be deleted while there are two or more in branch-node or condition-node.
-        if (branchOrConditionNodeData.subNodes.length > 2) {
-          branchOrConditionNodeData.subNodes.forEach((subNode) => {
-            subNode.deletable = true;
-          });
+        if (subNodes.length > 2) {
+          subNodes.forEach((item) => (item.deletable = true));
         } else {
-          branchOrConditionNodeData.subNodes.forEach((subNode) => {
-            subNode.deletable = false;
+          subNodes.forEach((item) => {
+            // if there are just two sub-node after deleting, the sub-node should be rerendered to update the context menu
+            if (item.deletable) {
+              item.timestamp = new Date().toString();
+            }
+            item.deletable = false;
           });
         }
-        branchOrConditionNodeData.timestamp = new Date().toString();
+        branchOrConditionNode.timestamp = new Date().toString();
+        updateNodeDataMap(branchOrConditionNode, nodeDataMap);
       } else {
-        const curNodeData = curNode as SingleNodeData | ConditionNodeData;
-        const parentNodeData = parentNode as SingleNodeData | ConditionNodeData;
-        if (action.type === DELETE_NODE && curNodeData.child) {
-          parentNodeData.child = curNodeData.child;
-          curNodeData.child = null;
-        } else parentNodeData.child = undefined;
-        updateNodeDataMap(curNodeData, nodeDataMap, false);
-        parentNodeData.timestamp = new Date().toString();
+        const curNode = curNodeData as SingleNodeData | ConditionNodeData;
+        if (action.type === DELETE_NODE) {
+          parentNode.child = curNode.child;
+          // set the child as null to avoid traversing when just delete one node
+          updateNodeDataMap({ ...curNode, child: null }, nodeDataMap, false);
+        } else {
+          let lastChild = curNode.child;
+          while (lastChild) {
+            lastChild = (lastChild as SingleNodeData | ConditionNodeData).child;
+          }
+          // last child may be null or undefined, the new child should keep the same
+          parentNode.child = lastChild;
+          // traverse to delete the current node and the children
+          updateNodeDataMap(curNode, nodeDataMap, false);
+        }
+        parentNode.timestamp = new Date().toString();
+        updateNodeDataMap(parentNode, nodeDataMap);
       }
-
       return { ...state };
     }
     case DELETE_CHILDREN: {
-      const curNodeData = curNode as SingleNodeData | ConditionNodeData;
-      let lastChild = curNodeData.child;
-      updateNodeDataMap(lastChild, nodeDataMap, false);
+      const curNode = curNodeData as SingleNodeData | ConditionNodeData;
+      //  traverse to delete the children from node data map before the children removed
+      updateNodeDataMap(curNode.child, nodeDataMap, false);
+      let lastChild = curNode.child;
       while (lastChild) {
         lastChild = (lastChild as SingleNodeData | ConditionNodeData).child;
       }
-      if (lastChild === null) curNodeData.child = null;
-      else curNodeData.child = undefined;
-
-      curNodeData.timestamp = new Date().toString();
+      curNode.child = lastChild;
+      curNode.timestamp = new Date().toString();
+      updateNodeDataMap(curNode, nodeDataMap);
       return { ...state };
     }
     case FOLD_NODES:
     case UNFOLD_NODES: {
-      const curNodeData = curNode as BranchNodeData | ConditionNodeData;
-      curNodeData.folded = action.type === FOLD_NODES ? true : false;
-      for (let subNode of curNodeData.subNodes) {
-        subNode.visible = action.type === FOLD_NODES ? false : true;
-      }
-
-      curNodeData.timestamp = new Date().toString();
+      const curNode = curNodeData as BranchNodeData | ConditionNodeData;
+      curNode.folded = action.type === FOLD_NODES ? true : false;
+      curNode.subNodes.forEach((item) => {
+        item.visible = action.type === FOLD_NODES ? false : true;
+      });
+      curNode.timestamp = new Date().toString();
       return { ...state };
     }
     default:
@@ -171,11 +212,11 @@ const reducer = (state: NodeDataState, action: any) => {
       if (sourceNodeId === targetNodeId) return state;
 
       const branchOrConditionNodeOfSourceNode = findBranchOrConditionNode(
-        nodeData as NodeData,
+        nodeData,
         sourceNodeId
       );
       const branchOrConditionNodeOfTargetNode = findBranchOrConditionNode(
-        nodeData as NodeData,
+        nodeData,
         targetNodeId
       );
       if (
@@ -185,54 +226,32 @@ const reducer = (state: NodeDataState, action: any) => {
       )
         return state;
 
-      const branchOrConditionNodeData = branchOrConditionNodeOfSourceNode as
+      const subNodes = (branchOrConditionNodeOfSourceNode as
         | BranchNodeData
-        | ConditionNodeData;
+        | ConditionNodeData).subNodes;
       let sourceNodeIndex = -1;
-      branchOrConditionNodeData.subNodes.some((subNode, index) => {
-        if (subNode.id === sourceNodeId) {
-          sourceNodeIndex = index;
-          return true;
-        }
-        return false;
-      });
       let targetNodeIndex = -1;
-      branchOrConditionNodeData.subNodes.some((subNode, index) => {
-        if (subNode.id === targetNodeId) {
-          targetNodeIndex = index;
-          return true;
-        }
-        return false;
+      subNodes.forEach((item, index) => {
+        if (item.id === sourceNodeId) sourceNodeIndex = index;
+        if (item.id === targetNodeId) targetNodeIndex = index;
       });
-      let targetNode = findNodeById(nodeData as NodeData, targetNodeId);
-      branchOrConditionNodeData.subNodes.splice(
-        targetNodeIndex,
-        1,
-        branchOrConditionNodeData.subNodes.splice(
-          sourceNodeIndex,
-          1,
-          targetNode as NodeData
-        )[0]
-      );
-
-      branchOrConditionNodeData.timestamp = new Date().toString();
+      [subNodes[sourceNodeIndex], subNodes[targetNodeIndex]] = [
+        subNodes[targetNodeIndex],
+        subNodes[sourceNodeIndex],
+      ];
+      branchOrConditionNodeOfSourceNode.timestamp = new Date().toString();
       return { ...state };
     }
     case UPDATE_NODES: {
       const { customizedNodes = [], toolTips = [] } = action;
-      for (let item of customizedNodes) {
-        const node = findNodeById(nodeData as NodeData, item.id);
-        if (node) {
-          node.customShape = item.shape;
-        }
-      }
-      for (let item of toolTips) {
-        const node = findNodeById(nodeData as NodeData, item.id);
-        if (node) {
-          node.toolTip = { ...item };
-        }
-      }
-
+      (customizedNodes as CustomizedNode[]).forEach((item) => {
+        const node = nodeDataMap.get(item.id);
+        if (node) node.customShape = item.shape;
+      });
+      (toolTips as ToolTip[]).forEach((item) => {
+        const node = nodeDataMap.get(item.id);
+        if (node) node.toolTip = { ...item };
+      });
       return { ...state };
     }
     default:
