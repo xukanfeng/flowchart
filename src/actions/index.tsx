@@ -179,7 +179,7 @@ export const swapNodes = (sourceNodeId: string, targetNodeId: string) => ({
 });
 
 export const updateNodes = (
-  customizedNodes?: Array<CustomizedNode>,
+  customizedNodes?: Map<string, CustomizedNode>,
   toolTips?: Array<ToolTip>
 ) => ({
   type: UPDATE_NODES,

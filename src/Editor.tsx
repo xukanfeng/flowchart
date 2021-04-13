@@ -29,7 +29,7 @@ export interface NodeBaseProps {
   visible: boolean;
   deletable: boolean;
   style?: NodeStyle;
-  customShape?: JSX.Element;
+  customShape?: JSX.Element | React.FC<any>;
   toolTip?: ToolTip;
 }
 
@@ -60,8 +60,8 @@ export type BranchNodeData = BranchNodeProps;
 export type ConditionNodeData = ConditionNodeProps;
 
 export interface CustomizedNode {
-  id: string;
-  shape: JSX.Element;
+  component: JSX.Element | React.FC<any>;
+  props: any;
 }
 
 export interface ToolTip {
@@ -73,11 +73,13 @@ export interface ToolTip {
 
 export interface EditorProps {
   data?: SingleNodeData;
-  customizedNodes?: Array<CustomizedNode>;
+  customizedNodes?: Map<string, CustomizedNode>;
   toolTips?: Array<ToolTip>;
   contextMenuDisabled?: boolean;
   onNodeDoubleClick?: (id: string) => any;
   onSave?: (data: SingleNodeData) => any;
+  onUpdate?: (data: Map<string, NodeProps>) => any;
+  onCustomizedEvent?: (...args: any) => any;
   dragable?: boolean;
   scalable?: boolean;
 }
@@ -94,6 +96,8 @@ const Editor: React.FC<EditorProps> = (props) => {
     contextMenuDisabled = false,
     onNodeDoubleClick,
     onSave,
+    onUpdate,
+    onCustomizedEvent,
     dragable = true,
     scalable = true,
   } = props;
@@ -158,16 +162,21 @@ const Editor: React.FC<EditorProps> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // useLayoutEffect 解决第一次渲染在 map 中取不到节点数据的问题？
   useEffect(() => {
     !data && dispatch(addStartNode());
-    (customizedNodes || toolTips) &&
-      dispatch(updateNodes(customizedNodes, toolTips));
-  }, [data, customizedNodes, toolTips]);
-
-  useEffect(() => {
     dispatch(initNodeDataMap(nodeData));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /*   useEffect(() => {
+    dispatch(updateNodes(customizedNodes, toolTips));
+  }, [customizedNodes, toolTips]); */
+
+  useEffect(() => {
+    onUpdate && onUpdate(nodeDataMap);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeDataMap]);
 
   const save = usePersistFn(() => onSave && onSave(nodeData));
 
@@ -191,7 +200,14 @@ const Editor: React.FC<EditorProps> = (props) => {
   return (
     <div className="container" ref={containerRef}>
       <Toolbar save={save}></Toolbar>
-      <EditorProvider {...{ onNodeDoubleClick, contextMenuDisabled }}>
+      <EditorProvider
+        {...{
+          onNodeDoubleClick,
+          onCustomizedEvent,
+          customizedNodes,
+          contextMenuDisabled,
+        }}
+      >
         <NodeDataProvider {...{ nodeData, nodeDataMap, dispatch }}>
           <div
             className="editor"

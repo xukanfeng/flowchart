@@ -2,6 +2,7 @@ import { createContext } from 'react';
 
 const initialEditorEventContext: {
   onNodeDoubleClick?: (id: string) => any;
-} = { onNodeDoubleClick: () => {} };
+  onCustomizedEvent?: (...args: any) => any;
+} = { onNodeDoubleClick: () => {}, onCustomizedEvent: () => {} };
 
 export default createContext(initialEditorEventContext);

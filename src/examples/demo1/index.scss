@@ -1,0 +1,16 @@
+.start-node-container {
+  border: 1px solid red;
+}
+.start-node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 30px;
+  width: 100px;
+  background-color: yellow;
+  .start-node-header__button {
+    height: 20px;
+    line-height: 20px;
+    width: 40px;
+  }
+}

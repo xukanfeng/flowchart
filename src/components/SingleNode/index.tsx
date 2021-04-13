@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useRef, useEffect } from 'react';
 import { Tooltip, Dropdown } from 'antd';
 import useContextMenu, { MENU } from '../ContextMenu';
 import Link from '../Link';
@@ -8,6 +8,7 @@ import {
   nodeDataContext,
   nodeDataDispatchContext,
   editorEventContext,
+  editorPropsContext,
 } from '../../context';
 import { swapNodes } from '../../actions';
 import { SingleNodeProps } from '../../Editor';
@@ -26,7 +27,12 @@ const MENU_ITEMS = [
 const SingleNode: React.FC<SingleNodeProps> = (props) => {
   const { id } = props;
   const { nodeDataMap } = useContext(nodeDataContext);
-  const curNodeData = nodeDataMap.get(id) || props; // the map maybe empty when the editor rendered for the first time
+  const curNodeData = useRef({})
+  useEffect(() => {
+    curNodeData.current = nodeDataMap.get(id) || props;
+    console.log(id, curNodeData.current);
+  })
+  // curNodeData.current = nodeDataMap.get(id) || props; // the map maybe empty when the editor rendered for the first time
   const {
     isRoot,
     timestamp,
@@ -34,7 +40,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
     deletable,
     customShape,
     toolTip,
-  } = curNodeData as SingleNodeProps;
+  } = curNodeData.current as SingleNodeProps;
 
   let menuItems = [...MENU_ITEMS];
   if (!child) {
@@ -56,7 +62,11 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
   }
   const menu = useContextMenu(id, menuItems);
 
-  const { onNodeDoubleClick } = useContext(editorEventContext);
+  const { onNodeDoubleClick, onCustomizedEvent } = useContext(
+    editorEventContext
+  );
+  const { customizedNodes } = useContext(editorPropsContext);
+  const customizedNode = customizedNodes && customizedNodes.get(id);
 
   const dispatch = useContext(nodeDataDispatchContext);
   const getDragProps = useDrag();
@@ -76,8 +86,18 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
               {...getDragProps(id)}
               {...sourceNodeId}
             >
-              {customShape ? (
-                <div>{customShape}</div>
+              {customizedNode ? (
+                typeof customizedNode.component === 'function' ? (
+                  <div>
+                    {(customizedNode.component as React.FC<any>)({
+                      id,
+                      onCustomizedEvent,
+                      ...customizedNode.props,
+                    })}
+                  </div>
+                ) : (
+                  <div>{customizedNode.component}</div>
+                )
               ) : (
                 <div className="node rect">{id}</div>
               )}
@@ -89,7 +109,7 @@ const SingleNode: React.FC<SingleNodeProps> = (props) => {
       </div>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [id, timestamp]
+    [id, curNodeData.current, customizedNode]
   );
 };
 

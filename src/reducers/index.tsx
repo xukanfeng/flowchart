@@ -43,7 +43,7 @@ const updateNodeDataMap: (
   if (!nodeData) return;
 
   flag
-    ? nodeDataMap.set(nodeData.id, nodeData)
+    ? nodeDataMap.set(nodeData.id, {...nodeData})
     : nodeDataMap.delete(nodeData.id);
 
   switch (nodeData.type) {
@@ -242,18 +242,18 @@ const reducer = (state: NodeDataState, action: any) => {
       branchOrConditionNodeOfSourceNode.timestamp = new Date().toString();
       return { ...state };
     }
-    case UPDATE_NODES: {
-      const { customizedNodes = [], toolTips = [] } = action;
-      (customizedNodes as CustomizedNode[]).forEach((item) => {
-        const node = nodeDataMap.get(item.id);
-        if (node) node.customShape = item.shape;
+/*     case UPDATE_NODES: {
+      const { customizedNodes, toolTips = [] } = action;
+      customizedNodes.forEach((item: CustomizedNode, key: string) => {
+        const node = nodeDataMap.get(key);
+        if (node) node.customShape = item;
       });
       (toolTips as ToolTip[]).forEach((item) => {
         const node = nodeDataMap.get(item.id);
         if (node) node.toolTip = { ...item };
       });
       return { ...state };
-    }
+    } */
     default:
       return handleNodeOperation(state, action);
   }

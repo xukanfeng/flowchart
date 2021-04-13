@@ -2,19 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 // import App from './App';
-import Editor from './Editor';
-import { data } from './mockData';
+import Demo1 from './examples/demo1';
+import Practice from './practice';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <div style={{ width: '1000px', height: '600px' }}>
-      <Editor
-        data={data}
-        onNodeDoubleClick={(id) => console.log(id)}
-        onSave={(data) => console.log(data)}
-      />
-    </div>
+    {false && <Demo1></Demo1>}
+    {<Practice></Practice>}
   </React.StrictMode>,
   document.getElementById('root')
 );
